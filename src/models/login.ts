@@ -3,12 +3,13 @@ import { Effect } from 'dva';
 import { stringify } from 'querystring';
 import { router } from 'umi';
 
-import { fakeAccountLogin, queryCurrentMenus, queryCurrentUser } from '@/services/login';
+import { accountLogin, accountLogout, queryCurrentMenus, queryCurrentUser } from '@/services/login';
 import { getPageQuery } from '@/utils/utils';
 import { RestApiResult } from "@/utils/request";
 import { md5, sha1 } from "hefang-js";
 import { getSessionStorage, setSessionStorage } from "useful-storage";
 import { StorageKey } from "@/utils/cosnts";
+import { ModelType } from "@/models/global";
 
 export interface Account {
   id?: string
@@ -29,28 +30,25 @@ export interface Account {
   lastLoginTime?: string
 }
 
-export interface StateType {
+export interface LoginState {
   currentUser?: Account
   currentMenus?: any[]
 }
 
-
-export interface LoginModelType {
-  namespace: string;
-  state: StateType;
-  effects: {
-    login: Effect;
-    logout: Effect;
-    fetchCurrentUser: Effect
-    fetchCurrentMenus: Effect
-  };
-  reducers: {
-    saveCurrentUser: Reducer<StateType>
-    saveCurrentMenus: Reducer<StateType>
-  };
+export interface LoginEffects {
+  login: Effect;
+  logout: Effect;
+  fetchCurrentUser: Effect
+  fetchCurrentMenus: Effect
 }
 
-const Model: LoginModelType = {
+export interface LoginReducers {
+  saveCurrentUser: Reducer<LoginState>
+  saveCurrentMenus: Reducer<LoginState>
+  cleanCurrentUser: Reducer<LoginState>
+}
+
+const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
   namespace: 'login',
 
   state: {
@@ -61,7 +59,7 @@ const Model: LoginModelType = {
   effects: {
     * login({ payload }, { call, put }) {
       payload.password = sha1(payload.password) + md5(payload.password);
-      const response: RestApiResult<Account> = yield call(fakeAccountLogin, payload);
+      const response: RestApiResult<Account> = yield call(accountLogin, payload);
       yield put({
         type: 'saveCurrentUser',
         payload: response.result,
@@ -87,16 +85,21 @@ const Model: LoginModelType = {
       }
     },
 
-    logout() {
-      const { redirect } = getPageQuery();
-      // Note: There may be security issues, please note
-      if (window.location.pathname !== '/user/login' && !redirect) {
-        router.replace({
-          pathname: '/user/login',
-          search: stringify({
-            redirect: window.location.href,
-          }),
-        });
+    * logout(_, { call, put }) {
+      const res: RestApiResult = yield call(accountLogout);
+      yield put({
+        type: "login/cleanCurrentUser"
+      });
+      if (res.status == 200) {
+        const { redirect } = getPageQuery();
+        if (window.location.pathname !== '/user/login' && !redirect) {
+          router.replace({
+            pathname: '/user/login',
+            search: stringify({
+              redirect: window.location.href,
+            }),
+          });
+        }
       }
     },
     * fetchCurrentUser(_, { call, put }) {
@@ -122,6 +125,10 @@ const Model: LoginModelType = {
     saveCurrentUser(state, { payload }) {
       setSessionStorage(StorageKey.CURRENT_USER_SESSION, payload);
       return { ...state, currentUser: payload }
+    },
+    cleanCurrentUser(state) {
+      sessionStorage.removeItem(StorageKey.CURRENT_USER_SESSION);
+      return { ...state, currentUser: {}, currentMenus: [] }
     }
   },
 };

@@ -2,7 +2,7 @@ import { Checkbox } from 'antd';
 import React, { useState } from 'react';
 import { AnyAction, Dispatch } from 'redux';
 import { connect } from 'dva';
-import { StateType } from '@/models/login';
+import { LoginState } from '@/models/login';
 import { LoginParamsType } from '@/services/login';
 import { ConnectState } from '@/models/connect';
 import LoginFrom from './components/Login';
@@ -13,7 +13,7 @@ const { Tab, UserName, Password, Submit } = LoginFrom;
 
 interface LoginProps {
   dispatch: Dispatch<AnyAction>;
-  userLogin: StateType;
+  userLogin: LoginState;
   submitting?: boolean;
 }
 
@@ -31,7 +31,6 @@ interface LoginProps {
 // );
 
 const Login: React.FC<LoginProps> = props => {
-  const { submitting } = props;
   const [autoLogin, setAutoLogin] = useState(true);
   const [type, setType] = useState<string>('account');
 
@@ -71,38 +70,6 @@ const Login: React.FC<LoginProps> = props => {
             ]}
           />
         </Tab>
-        {/*<Tab key="mobile" tab="手机号登录">*/}
-        {/*  {status === 'error' && loginType === 'mobile' && !submitting && (*/}
-        {/*    <LoginMessage content="验证码错误"/>*/}
-        {/*  )}*/}
-        {/*  <Mobile*/}
-        {/*    name="mobile"*/}
-        {/*    placeholder="手机号"*/}
-        {/*    rules={[*/}
-        {/*      {*/}
-        {/*        required: true,*/}
-        {/*        message: '请输入手机号！',*/}
-        {/*      },*/}
-        {/*      {*/}
-        {/*        pattern: /^1\d{10}$/,*/}
-        {/*        message: '手机号格式错误！',*/}
-        {/*      },*/}
-        {/*    ]}*/}
-        {/*  />*/}
-        {/*  <Captcha*/}
-        {/*    name="captcha"*/}
-        {/*    placeholder="验证码"*/}
-        {/*    countDown={120}*/}
-        {/*    getCaptchaButtonText=""*/}
-        {/*    getCaptchaSecondText="秒"*/}
-        {/*    rules={[*/}
-        {/*      {*/}
-        {/*        required: true,*/}
-        {/*        message: '请输入验证码！',*/}
-        {/*      },*/}
-        {/*    ]}*/}
-        {/*  />*/}
-        {/*</Tab>*/}
         <div>
           <Checkbox checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)}>
             自动登录
@@ -111,7 +78,7 @@ const Login: React.FC<LoginProps> = props => {
             忘记密码
           </a>
         </div>
-        <Submit loading={submitting}>登录</Submit>
+        <Submit>登录</Submit>
       </LoginFrom>
     </div>
   );
@@ -119,5 +86,4 @@ const Login: React.FC<LoginProps> = props => {
 
 export default connect(({ login, loading }: ConnectState) => ({
   userLogin: login,
-  submitting: loading.effects['login/login'],
 }))(Login);

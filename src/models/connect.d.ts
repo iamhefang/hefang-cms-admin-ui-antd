@@ -4,8 +4,10 @@ import { RouterTypes } from 'umi';
 import { GlobalModelState } from './global';
 import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
 import { UserModelState } from './user';
-import { StateType } from './login';
+import { LoginState } from './login';
 import { Dispatch } from "dva";
+import { ArticleListState } from "@/models/articleList";
+import { DashbordState } from "@/models/dashbord";
 
 export { GlobalModelState, SettingModelState, UserModelState };
 
@@ -26,7 +28,9 @@ export interface ConnectState {
   loading: Loading;
   settings: SettingModelState;
   user: UserModelState;
-  login: StateType;
+  login: LoginState;
+  articleList: ArticleListState
+  dashbord: DashbordState
 }
 
 export interface Route extends MenuDataItem {

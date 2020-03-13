@@ -1,5 +1,5 @@
 import { Reducer } from 'redux';
-import { Subscription, Effect } from 'dva';
+import { Effect, Subscription } from 'dva';
 
 import { NoticeIconData } from '@/components/NoticeIcon';
 import { queryNotices } from '@/services/user';
@@ -16,23 +16,31 @@ export interface GlobalModelState {
   notices: NoticeItem[];
 }
 
-export interface GlobalModelType {
-  namespace: 'global';
-  state: GlobalModelState;
-  effects: {
-    fetchNotices: Effect;
-    clearNotices: Effect;
-    changeNoticeReadState: Effect;
+export interface ModelType<S, R, E, N> {
+  namespace: N
+  state: S
+  effects: E
+  reducers: R
+  subscriptions?: {
+    setup: Subscription
   };
-  reducers: {
-    changeLayoutCollapsed: Reducer<GlobalModelState>;
-    saveNotices: Reducer<GlobalModelState>;
-    saveClearedNotices: Reducer<GlobalModelState>;
-  };
-  subscriptions: { setup: Subscription };
+
+  [key: string]: any
 }
 
-const GlobalModel: GlobalModelType = {
+export interface GlobalEffects {
+  fetchNotices: Effect;
+  clearNotices: Effect;
+  changeNoticeReadState: Effect;
+}
+
+export interface GlobalReducers {
+  changeLayoutCollapsed: Reducer<GlobalModelState>;
+  saveNotices: Reducer<GlobalModelState>;
+  saveClearedNotices: Reducer<GlobalModelState>;
+}
+
+const GlobalModel: ModelType<GlobalModelState, GlobalReducers, GlobalEffects, 'global'> = {
   namespace: 'global',
 
   state: {
@@ -41,7 +49,7 @@ const GlobalModel: GlobalModelType = {
   },
 
   effects: {
-    *fetchNotices(_, { call, put, select }) {
+    * fetchNotices(_, { call, put, select }) {
       const data = yield call(queryNotices);
       yield put({
         type: 'saveNotices',
@@ -58,7 +66,7 @@ const GlobalModel: GlobalModelType = {
         },
       });
     },
-    *clearNotices({ payload }, { put, select }) {
+    * clearNotices({ payload }, { put, select }) {
       yield put({
         type: 'saveClearedNotices',
         payload,
@@ -75,7 +83,7 @@ const GlobalModel: GlobalModelType = {
         },
       });
     },
-    *changeNoticeReadState({ payload }, { put, select }) {
+    * changeNoticeReadState({ payload }, { put, select }) {
       const notices: NoticeItem[] = yield select((state: ConnectState) =>
         state.global.notices.map(item => {
           const notice = { ...item };

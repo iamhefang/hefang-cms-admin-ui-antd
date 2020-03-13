@@ -8,12 +8,17 @@ export interface LoginParamsType {
   captcha: string;
 }
 
-export async function fakeAccountLogin(params: LoginParamsType): Promise<RestApiResult<Account>> {
+export async function accountLogin(params: LoginParamsType): Promise<RestApiResult<Account>> {
+  console.log(params);
   return request('/apis/user/account/login.json', {
     method: 'POST',
     data: params,
     failedTitle: "登录失败"
   });
+}
+
+export async function accountLogout(): Promise<RestApiResult<string>> {
+  return request('/apis/user/account/logout.json');
 }
 
 export async function getFakeCaptcha(mobile: string) {

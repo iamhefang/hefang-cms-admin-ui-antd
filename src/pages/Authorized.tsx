@@ -4,10 +4,10 @@ import { connect } from 'dva';
 import Authorized from '@/utils/Authorized';
 import { getRouteAuthority } from '@/utils/utils';
 import { ConnectProps, ConnectState } from '@/models/connect';
-import { StateType } from "@/models/login";
+import { LoginState } from "@/models/login";
 
 interface AuthComponentProps extends ConnectProps {
-  login: StateType;
+  login: LoginState;
 }
 
 const AuthComponent: React.FC<AuthComponentProps> = (

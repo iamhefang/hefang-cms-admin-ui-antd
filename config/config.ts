@@ -82,7 +82,7 @@ if (isAntDesignProPreview) {
 export default {
   plugins,
   hash: true,
-  history: "hash",
+  // history: "hash",
   targets: {
     ie: 11,
   },
@@ -106,17 +106,16 @@ export default {
         {
           path: '/',
           component: '../layouts/BasicLayout',
-          authority: ['admin', 'user'],
           routes: [
             {
               path: '/',
-              redirect: '/welcome',
+              redirect: '/dashbord',
             },
             {
-              path: '/welcome',
-              name: 'welcome',
+              path: '/dashbord',
+              name: '工作台',
               icon: 'smile',
-              component: './Welcome',
+              component: './dashbord/Dashbord',
             },
             {
               path: '/admin',
@@ -141,6 +140,12 @@ export default {
               component: './ListTableList',
             },
             {
+              name: "文章列表",
+              icon: "table",
+              path: "/article/list",
+              component: "./article/ArticleList"
+            },
+            {
               component: './404',
             },
           ],
@@ -156,7 +161,6 @@ export default {
   ],
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {
-    // ...darkTheme,
     'primary-color': defaultSettings.primaryColor,
   },
   define: {

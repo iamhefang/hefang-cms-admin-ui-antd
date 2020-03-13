@@ -4,18 +4,27 @@ import { chainingCheck } from "hefang-js";
 import { message, notification } from "antd";
 import { getSessionStorage } from "useful-storage";
 import { Account } from "@/models/login";
+import { StorageKey } from "@/utils/cosnts";
 
-export interface RestApiResult<T> {
+export interface RestApiResult<T = string> {
   status: number
   message: string
   result: T
 }
 
 export interface Pager<T> {
-  index: number
+  current: number
   total: number
   size: number
   data: Array<T>
+}
+
+export interface PagerSearchParams {
+  pageIndex?: number
+  pageSize?: number
+  query?: string | null
+  sortKey?: string | null
+  sortType?: string | null
 }
 
 export type RestPagerResult<T> = RestApiResult<Pager<T>>
@@ -30,7 +39,7 @@ export interface RequestOptions extends RequestInit {
   resolveErrorResponse?: boolean
   rawResponse?: boolean,
   prefix?: string
-  data?: { [key: string]: any }
+  data?: { [key: string]: any } | BodyInit
   headers?: { [name: string]: string }
 }
 
@@ -38,6 +47,7 @@ export const STATUS_CODE_MAP: { [code: number]: string } = {
   400: "参数不正确",
   404: "请求的内容不存在",
   403: "您无权访问该内容",
+  405: "请求方法不支持",
   500: "服务端异常"
 };
 
@@ -69,9 +79,10 @@ export default async function request<T>(api: string, options?: RequestOptions):
       resolveErrorResponse,
       rawResponse,
       prefix,
-      data, body,
+      body,
+      data,
       ...opt
-    } = _.extend({
+    } = _.merge({
       method: "GET",
       errorTitle: true,
       successMessage: false,
@@ -81,16 +92,22 @@ export default async function request<T>(api: string, options?: RequestOptions):
       prefix: "",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
         "Accept": "application/json"
       }
     }, options || {}) as RequestOptions & { headers: { [name: string]: string } };
 
-    const realOptions = _.extend(opt || {}, {
-      body: _.isObject(data) ? JSON.stringify(data) : body
+    const realOptions = _.merge(opt || {}, {
+      body: _.isPlainObject(data) ? JSON.stringify(data) : (data || body)
     });
 
-    const { token } = getSessionStorage<Pick<Account, "token">>("user", { token: "" });
+
+    if (_.isPlainObject(data)) {
+      realOptions.headers = _.merge({
+        "Content-Type": "application/json"
+      }, realOptions.headers)
+    }
+
+    const { token } = getSessionStorage<Pick<Account, "token">>(StorageKey.CURRENT_USER_SESSION, { token: "" });
 
     if (token) {
       realOptions.headers.Authorization = token;
