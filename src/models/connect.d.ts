@@ -6,8 +6,9 @@ import { DefaultSettings as SettingModelState } from '../../config/defaultSettin
 import { UserModelState } from './user';
 import { LoginState } from './login';
 import { Dispatch } from "dva";
-import { ArticleListState } from "@/models/articleList";
+import { ArticleState } from "@/models/article";
 import { DashbordState } from "@/models/dashbord";
+import { ProfileState } from "@/models/profile";
 
 export { GlobalModelState, SettingModelState, UserModelState };
 
@@ -29,8 +30,9 @@ export interface ConnectState {
   settings: SettingModelState;
   user: UserModelState;
   login: LoginState;
-  articleList: ArticleListState
+  article: ArticleState
   dashbord: DashbordState
+  profile: ProfileState
 }
 
 export interface Route extends MenuDataItem {

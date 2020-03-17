@@ -19,6 +19,23 @@ body,
   min-height: 100vh;
 }
 
+@scrollbar-size: 10px;
+::-webkit-scrollbar {
+  width: @scrollbar-size;
+  height: @scrollbar-size;
+
+  &-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: @scrollbar-size / 2;
+  }
+}
+
+aside::-webkit-scrollbar {
+  &-thumb {
+    background: rgba(203, 203, 203, 0.75);
+  }
+}
+
 canvas {
   display: block;
 }
@@ -36,6 +53,14 @@ ol {
 
 .word-break-all {
   word-break: break-all;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
 }
 
 @media (max-width: @screen-xs) {

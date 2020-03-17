@@ -1,4 +1,4 @@
-import { Article } from "@/models/articleList";
+import { Article } from "@/models/article";
 import React from "react";
 
 export default function ArticlePreviewModal(article: Article) {

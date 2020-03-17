@@ -3,13 +3,14 @@ import { Effect } from 'dva';
 import { stringify } from 'querystring';
 import { router } from 'umi';
 
-import { accountLogin, accountLogout, queryCurrentMenus, queryCurrentUser } from '@/services/login';
+import { accountLogin, accountLogout, queryCurrentUser } from '@/services/login';
 import { getPageQuery } from '@/utils/utils';
 import { RestApiResult } from "@/utils/request";
 import { md5, sha1 } from "hefang-js";
 import { getSessionStorage, setSessionStorage } from "useful-storage";
 import { StorageKey } from "@/utils/cosnts";
 import { ModelType } from "@/models/global";
+import { queryCurrentMenus, SideMenu } from "@/services/menu";
 
 export interface Account {
   id?: string
@@ -28,11 +29,13 @@ export interface Account {
   loginTime?: string
   lastLoginIp?: string
   lastLoginTime?: string
+  isAdmin?: boolean
+  isSuperAdmin?: boolean
 }
 
 export interface LoginState {
   currentUser?: Account
-  currentMenus?: any[]
+  currentMenus?: SideMenu[]
 }
 
 export interface LoginEffects {
@@ -48,12 +51,12 @@ export interface LoginReducers {
   cleanCurrentUser: Reducer<LoginState>
 }
 
-const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
+const LoginModel: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
   namespace: 'login',
 
   state: {
-    currentUser: getSessionStorage(StorageKey.CURRENT_USER_SESSION, {}),
-    currentMenus: []
+    currentUser: getSessionStorage(StorageKey.CURRENT_USER_SESSION) as Account,
+    currentMenus: getSessionStorage(StorageKey.CURRENT_MENUS_SESSION, [])
   },
 
   effects: {
@@ -63,6 +66,9 @@ const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
       yield put({
         type: 'saveCurrentUser',
         payload: response.result,
+      });
+      yield  put({
+        type: "fetchCurrentMenus"
       });
       // Login successfully
       if (response.status === 200) {
@@ -84,15 +90,14 @@ const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
         router.replace(redirect || '/');
       }
     },
-
     * logout(_, { call, put }) {
       const res: RestApiResult = yield call(accountLogout);
       yield put({
         type: "login/cleanCurrentUser"
       });
-      if (res.status == 200) {
+      if (res.status === 200) {
         const { redirect } = getPageQuery();
-        if (window.location.pathname !== '/user/login' && !redirect) {
+        if (window.location.pathname !== '/user/login.html' && !redirect) {
           router.replace({
             pathname: '/user/login',
             search: stringify({
@@ -103,10 +108,10 @@ const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
       }
     },
     * fetchCurrentUser(_, { call, put }) {
-      const response = yield call(queryCurrentUser);
+      const response: RestApiResult<Account> = yield call(queryCurrentUser);
       yield put({
         type: 'saveCurrentUser',
-        payload: response,
+        payload: response.result,
       });
     },
     * fetchCurrentMenus(_, { call, put }) {
@@ -120,6 +125,7 @@ const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
 
   reducers: {
     saveCurrentMenus(state, { payload }) {
+      setSessionStorage(StorageKey.CURRENT_MENUS_SESSION, payload);
       return { ...state, currentMenus: payload }
     },
     saveCurrentUser(state, { payload }) {
@@ -128,9 +134,10 @@ const Model: ModelType<LoginState, LoginReducers, LoginEffects, "login"> = {
     },
     cleanCurrentUser(state) {
       sessionStorage.removeItem(StorageKey.CURRENT_USER_SESSION);
+      sessionStorage.removeItem(StorageKey.CURRENT_MENUS_SESSION);
       return { ...state, currentUser: {}, currentMenus: [] }
     }
   },
 };
 
-export default Model;
+export default LoginModel;

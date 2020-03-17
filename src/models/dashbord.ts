@@ -3,7 +3,7 @@ import { Effect } from "dva";
 import { queryArticles } from "@/services/article";
 import { Reducer } from "redux";
 import { Pager, RestPagerResult } from "@/utils/request";
-import { Article } from "@/models/articleList";
+import { Article } from "@/models/article";
 
 
 export interface DashbordState {
@@ -18,7 +18,7 @@ export interface DashbordEffects {
   fetchDrafts: Effect
 }
 
-const Model: ModelType<DashbordState, DashbordReducers, DashbordEffects, "dashbord"> = {
+const DashbordModel: ModelType<DashbordState, DashbordReducers, DashbordEffects, "dashbord"> = {
   namespace: "dashbord",
 
   state: {
@@ -47,4 +47,4 @@ const Model: ModelType<DashbordState, DashbordReducers, DashbordEffects, "dashbo
   },
 };
 
-export default Model;
+export default DashbordModel;

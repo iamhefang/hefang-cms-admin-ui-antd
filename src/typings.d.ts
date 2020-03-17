@@ -11,6 +11,11 @@ declare module '*.gif';
 declare module '*.bmp';
 declare module '*.tiff';
 declare module 'omit.js';
+declare module 'ckeditor4-react';
+
+interface CkEditor {
+  getData(): string
+}
 
 // google analytics interface
 interface GAFieldsObject {
@@ -20,6 +25,7 @@ interface GAFieldsObject {
   eventValue?: number;
   nonInteraction?: boolean;
 }
+
 interface Window {
   ga: (
     command: 'send',

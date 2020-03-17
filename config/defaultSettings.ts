@@ -36,5 +36,5 @@ export default {
   },
   title: '何方CMS',
   pwa: true,
-  iconfontUrl: '',
+  iconfontUrl: '//at.alicdn.com/t/font_1693123_gwmqtmqmo4d.js',
 } as DefaultSettings;

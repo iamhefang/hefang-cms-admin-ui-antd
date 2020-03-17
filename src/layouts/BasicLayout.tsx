@@ -15,6 +15,8 @@ import RightContent from '@/components/GlobalHeader/RightContent';
 import { ConnectState } from '@/models/connect';
 import { getAuthorityFromRouter } from '@/utils/utils';
 import logo from '../assets/logo.svg';
+import { SideMenu } from "@/services/menu";
+import FontAwesomeIcon from "@/components/FontAwesomeIcon/FontAwesomeIcon";
 
 const noMatch = (
   <Result
@@ -23,7 +25,7 @@ const noMatch = (
     subTitle="Sorry, you are not authorized to access this page."
     extra={
       <Button type="primary">
-        <Link to="/user/login">Go Login</Link>
+        <Link to="/user/login.html">Go Login</Link>
       </Button>
     }
   />
@@ -38,6 +40,7 @@ export interface BasicLayoutProps extends ProLayoutProps {
   };
   settings: Settings;
   dispatch: Dispatch;
+  currentMenus?: SideMenu[]
 }
 
 export type BasicLayoutContext = { [K in 'location']: BasicLayoutProps[K] } & {
@@ -45,23 +48,24 @@ export type BasicLayoutContext = { [K in 'location']: BasicLayoutProps[K] } & {
     [path: string]: MenuDataItem;
   };
 };
-/**
- * use Authorized check all menu item
- */
-
-const menuDataRender = (menuList: MenuDataItem[]): MenuDataItem[] =>
-  menuList.map(item => {
-    const localItem = { ...item, children: item.children ? menuDataRender(item.children) : [] };
-    return Authorized.check(item.authority, localItem, null) as MenuDataItem;
-  });
 
 const footerRender: BasicLayoutProps['footerRender'] = () => null;
+
+function menuDataRender(currentMenus?: SideMenu[]): any[] {
+  if (!Array.isArray(currentMenus)) return [];
+  return currentMenus.sort((a, b) => a.sort - b.sort).map(menu => ({
+    ...menu,
+    icon: <FontAwesomeIcon icon={menu.icon}/>,
+    children: menuDataRender(menu.children)
+  }))
+}
 
 const BasicLayout: React.FC<BasicLayoutProps> = props => {
   const {
     dispatch,
     children,
     settings,
+    currentMenus,
     location = {
       pathname: '/',
     },
@@ -127,19 +131,21 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
         );
       }}
       footerRender={footerRender}
-      menuDataRender={menuDataRender}
+      menuDataRender={() => menuDataRender(currentMenus)}
       rightContentRender={() => <RightContent/>}
       {...props}
-      {...settings}
-    >
+      {...settings}>
       <Authorized authority={authorized!.authority} noMatch={noMatch}>
         {children}
       </Authorized>
     </ProLayout>
   );
 };
-
-export default connect(({ global, settings }: ConnectState) => ({
-  collapsed: global.collapsed,
-  settings,
-}))(BasicLayout);
+export default connect(
+  ({
+     global, settings, login
+   }: ConnectState) => ({
+    collapsed: global.collapsed,
+    settings,
+    currentMenus: login.currentMenus
+  }))(BasicLayout);

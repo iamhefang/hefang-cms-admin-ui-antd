@@ -94,7 +94,7 @@ export default {
       routes: [
         {
           name: 'login',
-          path: '/user/login',
+          path: '/user/login.html',
           component: './user/login',
         },
       ],
@@ -109,41 +109,42 @@ export default {
           routes: [
             {
               path: '/',
-              redirect: '/dashbord',
+              redirect: '/dashbord.html',
             },
             {
-              path: '/dashbord',
+              path: '/dashbord.html',
               name: '工作台',
-              icon: 'smile',
               component: './dashbord/Dashbord',
             },
             {
-              path: '/admin',
-              name: 'admin',
-              icon: 'crown',
-              component: './Admin',
-              authority: ['admin'],
-              routes: [
-                {
-                  path: '/admin/sub-page',
-                  name: 'sub-page',
-                  icon: 'smile',
-                  component: './Welcome',
-                  authority: ['admin'],
-                },
-              ],
-            },
-            {
               name: 'list.table-list',
-              icon: 'table',
               path: '/list',
               component: './ListTableList',
             },
             {
               name: "文章列表",
-              icon: "table",
-              path: "/article/list",
+              path: "/content/article/list.html",
               component: "./article/ArticleList"
+            },
+            {
+              name: "新建文章",
+              path: "/content/article/editor.html",
+              component: "./article/ArticleEditor"
+            },
+            {
+              name: "编辑文章",
+              path: "/content/article/editor/:id.html",
+              component: "./article/ArticleEditor"
+            },
+            {
+              name: "菜单管理",
+              path: "/setting/menus.html",
+              component: "./menu/MenuList"
+            },
+            {
+              name: "个人中心",
+              path: "/user/profile.html",
+              component: "./user/profile/Profile"
             },
             {
               component: './404',

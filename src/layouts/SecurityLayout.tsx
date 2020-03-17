@@ -25,7 +25,7 @@ class SecurityLayout extends React.Component<SecurityLayoutProps, SecurityLayout
       isReady: true,
     });
     const { dispatch } = this.props;
-    if (dispatch && !this.props.currentUser?.token) {
+    if (dispatch && !this.props.currentUser?.id) {
       dispatch({
         type: 'login/fetchCurrentUser',
       });
@@ -35,7 +35,7 @@ class SecurityLayout extends React.Component<SecurityLayoutProps, SecurityLayout
   render() {
     const { isReady } = this.state;
     const { children, loading, currentUser } = this.props;
-    const isLogin = currentUser?.token;
+    const isLogin = currentUser?.id;
     const queryString = stringify({
       redirect: window.location.href,
     });
@@ -43,8 +43,8 @@ class SecurityLayout extends React.Component<SecurityLayoutProps, SecurityLayout
     if ((!isLogin && loading) || !isReady) {
       return <PageLoading/>;
     }
-    if (!isLogin && window.location.pathname !== '/user/login') {
-      return <Redirect to={`/user/login?${queryString}`}/>;
+    if (!isLogin && window.location.pathname !== '/user/login.html') {
+      return <Redirect to={`/user/login.html?${queryString}`}/>;
     }
     return children;
   }

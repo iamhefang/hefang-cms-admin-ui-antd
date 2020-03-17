@@ -12,6 +12,12 @@ export interface RestApiResult<T = string> {
   result: T
 }
 
+export type RestPagerResult<T> = RestApiResult<Pager<T>>
+
+export type RestApiPromise<T> = Promise<RestApiResult<T>>
+
+export type RestPagerPromise<T> = Promise<RestPagerResult<T>>
+
 export interface Pager<T> {
   current: number
   total: number
@@ -23,13 +29,12 @@ export interface PagerSearchParams {
   pageIndex?: number
   pageSize?: number
   query?: string | null
-  sortKey?: string | null
-  sortType?: string | null
+  sort?: string | null
 }
 
-export type RestPagerResult<T> = RestApiResult<Pager<T>>
 
 export interface RequestOptions extends RequestInit {
+  method?: MethodEnum
   // 成功时自动弹出提示
   successMessage?: boolean | string
   // 500错误时自动弹出通知
@@ -48,6 +53,7 @@ export const STATUS_CODE_MAP: { [code: number]: string } = {
   404: "请求的内容不存在",
   403: "您无权访问该内容",
   405: "请求方法不支持",
+  499: "未知原因失败",
   500: "服务端异常"
 };
 
@@ -58,7 +64,7 @@ export function showErrorNotification(title: string, url: string, msg: string) {
       <div className="word-break-all">{url}</div>
       <div className="word-break-all">{msg}</div>
     </>,
-    duration: 5000
+    duration: 8
   });
 }
 
@@ -72,6 +78,20 @@ function makeErrorTitle(title: string | boolean, status: number, json: RestApiRe
   showErrorNotification(realTitle, url, json.result)
 }
 
+export const enum DeleteEnum {
+  RECYCLE = "recycle",
+  DESTROY = "destroy",
+  RESTORE = "restore"
+}
+
+export const enum MethodEnum {
+  DELETE = "DELETE",
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+}
+
 export default async function request<T>(api: string, options?: RequestOptions): Promise<RestApiResult<T>> {
   return new Promise((resolve, reject) => {
     const {
@@ -83,7 +103,7 @@ export default async function request<T>(api: string, options?: RequestOptions):
       data,
       ...opt
     } = _.merge({
-      method: "GET",
+      method: MethodEnum.GET,
       errorTitle: true,
       successMessage: false,
       failedTitle: false,
@@ -107,11 +127,12 @@ export default async function request<T>(api: string, options?: RequestOptions):
       }, realOptions.headers)
     }
 
-    const { token } = getSessionStorage<Pick<Account, "token">>(StorageKey.CURRENT_USER_SESSION, { token: "" });
+    const user = getSessionStorage<Account>(StorageKey.CURRENT_USER_SESSION);
 
-    if (token) {
-      realOptions.headers.Authorization = token;
+    if (user?.token) {
+      realOptions.headers.Authorization = user.token;
     }
+
     const url = prefix + api;
 
     fetch(url, realOptions)
@@ -121,24 +142,24 @@ export default async function request<T>(api: string, options?: RequestOptions):
             // eslint-disable-next-line no-eval
             const json = eval(`(${text})`);
             if (res.status >= 500) {
-              errorTitle && makeErrorTitle(errorTitle, res.status, json, res.url || url);
+              errorTitle && makeErrorTitle(errorTitle, res.status, json, `${realOptions.method} ${res.url || url}`);
               reject(json);
             } else if (res.status >= 400) {
-              failedTitle && makeErrorTitle(failedTitle, res.status, json, res.url || url);
+              failedTitle && makeErrorTitle(failedTitle, res.status, json, `${realOptions.method} ${res.url || url}`);
               reject(json);
             } else if (res.status >= 200 && res.status < 300) {
               if (successMessage) {
                 let msg = "";
                 if (typeof successMessage === "string") {
                   msg = successMessage;
-                } else if (realOptions.method === "POST") {
+                } else if (realOptions.method === MethodEnum.POST) {
                   msg = "提交成功";
-                } else if (realOptions.method === "DELETE") {
+                } else if (realOptions.method === MethodEnum.DELETE) {
                   msg = "删除成功";
-                } else if (realOptions.method === "PUT" || realOptions.method === "PATCH") {
+                } else if (realOptions.method === MethodEnum.PUT || realOptions.method === MethodEnum.PATCH) {
                   msg = "修改成功";
                 }
-                message.success(msg, 4000);
+                message.success(msg, 5);
               }
               resolve(json)
             }
@@ -148,7 +169,7 @@ export default async function request<T>(api: string, options?: RequestOptions):
               message: "Parse Error",
               result: `后端返回结果无法解析为JSON：${e.message}`
             };
-            showErrorNotification("数据解析失败", res.url || url, obj.result);
+            showErrorNotification("数据解析失败", `${realOptions.method} ${res.url || url}`, obj.result);
             reject(obj);
           }
         });

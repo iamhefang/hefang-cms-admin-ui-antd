@@ -3,11 +3,11 @@ import { Avatar, Menu, Spin } from 'antd';
 import { ClickParam } from 'antd/es/menu';
 import React from 'react';
 import { connect } from 'dva';
-import { router } from 'umi';
 import { ConnectProps, ConnectState } from '@/models/connect';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 import { Account } from "@/models/login";
+import router from "umi/router";
 
 export interface GlobalHeaderRightProps extends ConnectProps {
   currentUser?: Account;
@@ -20,17 +20,15 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
 
     if (key === 'logout') {
       const { dispatch } = this.props;
-
       if (dispatch) {
         dispatch({
           type: 'login/logout',
         });
       }
-
       return;
+    } else if (key === "center") {
+      router.push("/user/profile.html")
     }
-
-    router.push(`/account/${key}`);
   };
 
   render(): React.ReactNode {
@@ -39,24 +37,18 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
         avatar: '',
         name: '',
       },
-      menu,
     } = this.props;
     const menuHeaderDropdown = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
-        {menu && (
-          <Menu.Item key="center">
-            <UserOutlined/>
-            个人中心
-          </Menu.Item>
-        )}
-        {menu && (
-          <Menu.Item key="settings">
-            <SettingOutlined/>
-            个人设置
-          </Menu.Item>
-        )}
-        {menu && <Menu.Divider/>}
-
+        <Menu.Item key="center">
+          <UserOutlined/>
+          个人中心
+        </Menu.Item>
+        <Menu.Item key="settings">
+          <SettingOutlined/>
+          个人设置
+        </Menu.Item>
+        <Menu.Divider/>
         <Menu.Item key="logout">
           <LogoutOutlined/>
           退出登录

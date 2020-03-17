@@ -16,7 +16,7 @@ function Dashbord({ articleDrafts, dispatch }: DashbordState & ConnectProps) {
   return <PageHeaderWrapper title="工作台">
     <Row gutter={20}>
       <Col span={16}>
-        <Card title={`草稿(${articleDrafts?.total})`} extra={<Link to="/article/list">去文章列表页</Link>}>
+        <Card title={`草稿(${articleDrafts?.total})`} extra={<Link to="/content/article/list.html">去文章列表页</Link>}>
           {articleDrafts?.data?.map(item => <Card.Grid>
             <h2>{item.title}</h2>
             <p>{item.description}</p>
