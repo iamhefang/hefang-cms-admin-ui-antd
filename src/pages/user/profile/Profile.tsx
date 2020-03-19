@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { connect } from "dva";
 import classNames from "classnames";
-import { Button, Card, Col, Form, Input, List, Modal, Pagination, Row, Tabs, Tag } from "antd";
+import { Button, Card, Col, Form, Input, List, Modal, Pagination, Row, Skeleton, Tabs, Tag } from "antd";
 import { FormItemProps } from "antd/lib/form";
 import { useForm } from "antd/lib/form/Form";
 import { ConnectProps, ConnectState } from "@/models/connect";
@@ -12,7 +12,6 @@ import { DislikeOutlined, EyeOutlined, LikeOutlined, UserOutlined } from "@ant-d
 import { ProfileState } from "@/models/profile";
 import moment from "moment";
 
-// import styles from "./Proflie.less";
 export type ProfileProps = {
   login: LoginState,
   profile: ProfileState
@@ -21,12 +20,13 @@ export type ProfileProps = {
 function Profile(props: ProfileProps) {
   const [infoForm] = useForm();
   const [passwordForm] = useForm();
+  const { profile: { articles } } = props;
   const [showModal, toggleModal] = useState(false);
   useEffect(() => {
     props.dispatch && props.dispatch({
       type: "profile/fetchMyArticle"
     })
-  }, [props.profile?.articles?.total]);
+  }, [articles?.total]);
   const formItems: FormItemProps[] = [
     // {
     //   label: "头像",
@@ -91,28 +91,33 @@ function Profile(props: ProfileProps) {
       <Col flex={1}>
         <Card>
           <Tabs>
-            <Tabs.TabPane tab={`文章(${props.profile.articles?.total || 0})`} key="articles">
-              <List
-                style={{ maxWidth: 500 }}
-                dataSource={props.profile.articles?.data}
-                renderItem={(item, index) => (
-                  <List.Item key={item.id} actions={[
-                    <><EyeOutlined/> {item.readCount}</>,
-                    <><LikeOutlined/> {item.opposeCount}</>,
-                    <><DislikeOutlined/> {item.approvalCount}</>,
-                    moment(item.postTime, "YYYY-MM-DD HH:mm:ss").format("YYYY年MM月DD日")
-                  ]}>
-                    <List.Item.Meta title={item.title} description={item?.tags?.map(tag => <Tag>{tag}</Tag>) || "无标签"}/>
-                    {item.description}
-                  </List.Item>
-                )}
-                footer={(
-                  <Pagination
-                    pageSize={props.profile.articles?.size || 20}
-                    total={props.profile.articles?.total || 0}
-                    current={props.profile.articles?.current}/>
-                )}/>
-
+            <Tabs.TabPane tab={`文章(${articles?.total || 0})`} key="articles">
+              <Skeleton loading={!articles} active>
+                <List
+                  dataSource={articles?.data}
+                  renderItem={(item, index) => (
+                    <List.Item key={item.id} actions={[
+                      <><EyeOutlined/> {item.readCount}</>,
+                      <><LikeOutlined/> {item.opposeCount}</>,
+                      <><DislikeOutlined/> {item.approvalCount}</>,
+                      moment(item.postTime, "YYYY-MM-DD HH:mm:ss").format("YYYY年MM月DD日")
+                    ]}>
+                      <List.Item.Meta
+                        title={[
+                          item.title,
+                          item.isDraft ? <Tag color="processing" style={{ marginLeft: 10 }}>草稿</Tag> : null
+                        ]}
+                        description={item.description}/>
+                      {item?.tags?.map(tag => <Tag>{tag}</Tag>) || "无标签"}
+                    </List.Item>
+                  )}
+                  footer={(
+                    <Pagination
+                      pageSize={articles?.size || 20}
+                      total={articles?.total || 0}
+                      current={articles?.current}/>
+                  )}/>
+              </Skeleton>
             </Tabs.TabPane>
             <Tabs.TabPane tab="评论" key="comments">
 

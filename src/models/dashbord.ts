@@ -30,8 +30,7 @@ const DashbordModel: ModelType<DashbordState, DashbordReducers, DashbordEffects,
       const res: RestPagerResult<Article> = yield call(queryArticles, {
         pageSize: 9,
         query: "isDraft=true",
-        sortKey: "postTime",
-        sortType: "desc"
+        sort: "-postTime"
       });
       yield put({
         type: "dashbord/saveDrafts",

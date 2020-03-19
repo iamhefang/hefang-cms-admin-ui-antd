@@ -1,17 +1,19 @@
 import { PageHeaderWrapper } from "@ant-design/pro-layout";
-import React, { useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { ConnectState } from "@/models/connect";
-import { SideMenu } from "@/services/menu";
-import { Button, Form, Input, InputNumber, Modal, Select } from "antd";
-import { ColumnsType } from "antd/lib/table";
-import { LoginState } from "@/models/login";
+import { ConnectProps, ConnectState } from "@/models/connect";
+import { deleteMenus, setMenu, SideMenu } from "@/services/menu";
+import { Button, Form, Input, InputNumber, message, Modal, Select, Switch } from "antd";
 import FontAwesomeIcon from "@/components/FontAwesomeIcon/FontAwesomeIcon";
 import { EditOutlined } from "@ant-design/icons/lib";
 import { FormInstance, useForm } from "antd/lib/form/Form";
 import { FormItemProps } from "antd/lib/form";
-import ProTable from "@ant-design/pro-table";
 import _ from "lodash";
+import { DeleteEnum } from "@/utils/request";
+import { MenuState } from "@/models/menu";
+import { execute } from "hefang-js";
+import { LoginState } from "@/models/login";
+import EditableProTable, { EditableProTableColumn } from "@/components/EditableProTable/EditableProTable";
 
 const formItemLayout: Pick<FormItemProps, "labelCol" | "wrapperCol"> = {
   labelCol: { span: 6 },
@@ -73,10 +75,19 @@ function filterMenus(search: string, menus?: SideMenu[]) {
   });
 }
 
-function MenuList(props: LoginState) {
+export type MenuListProps = { menu: MenuState, login: LoginState } & ConnectProps;
+
+function MenuList(props: MenuListProps) {
   const [form] = useForm();
   const [search, setSearch] = useState<string>("");
-  const columns: ColumnsType<SideMenu> = [
+  const [loading, setLoading] = useState<string>("");
+  useEffect(() => {
+    execute(props.dispatch, {
+      type: "menu/fetchAllMenus"
+    })
+  }, [props.menu?.menus?.length]);
+
+  const columns: EditableProTableColumn<SideMenu>[] = [
     {
       title: "编号",
       width: 100,
@@ -87,53 +98,95 @@ function MenuList(props: LoginState) {
     },
     {
       title: "图标",
-      width: 80,
+      width: 150,
       align: "center",
       dataIndex: "icon",
-      render: (icon: string, record: SideMenu) => {
-        return <FontAwesomeIcon icon={icon}/>
+      editable: true,
+      render: (text: any) => {
+        return <FontAwesomeIcon icon={text}/>
       }
     },
     {
       title: "菜单名",
       dataIndex: "name",
-      render: (text: string, record: SideMenu) => {
-        text = text.replace(search, `<span style="color: red">${search}</span>`);
-        return <span dangerouslySetInnerHTML={{ __html: text }}/>
-      }
+      width: 200,
+      editable: true,
+    },
+    {
+      title: "路径",
+      dataIndex: "path",
+      editable: true
     },
     {
       title: "排序",
       dataIndex: "sort",
-      width: 80,
+      width: 120,
       sorter: (a, b) => a.sort - b.sort,
-      align: "center"
+      align: "center",
+      editable: true,
+      editType: "number"
+    },
+    {
+      title: "启用",
+      dataIndex: "enable",
+      width: 80,
+      align: "center",
+      render: (value: any, record: SideMenu) => {
+        return (
+          <Switch
+            checkedChildren="是"
+            unCheckedChildren="否"
+            checked={value}
+            disabled={!!loading && loading !== record.id}
+            loading={loading === record.id}
+            onChange={checked => {
+              setLoading(record.id);
+              deleteMenus([record.id], checked ? DeleteEnum.RESTORE : DeleteEnum.RECYCLE)
+                .then(() => {
+                  execute(props.dispatch, {
+                    type: "menu/fetchAllMenus"
+                  })
+                }).finally(() => setTimeout(() => setLoading(""), 800))
+            }}/>
+        )
+      }
     },
     {
       title: "操作",
       width: 120,
       align: "center",
-      render: (text, record: SideMenu) => {
+      render: (_, record: SideMenu): ReactElement[] => {
         return [
           <Button
             type="link"
             icon={<EditOutlined/>}
-            onClick={() => showMenuEditor(form, props.currentMenus, record)}/>
+            onClick={() => showMenuEditor(form, props?.menu?.menus, record)}/>
         ];
       }
     }
   ];
-  const dataSource = filterMenus(search, props?.currentMenus);
+  const dataSource = filterMenus(search, props?.menu?.menus);
   return <PageHeaderWrapper title={"菜单管理"}>
-    <ProTable<SideMenu>
+    <EditableProTable<SideMenu>
       columns={columns}
       rowKey="id"
-      expandedRowKeys={dataSource?.length === props?.currentMenus?.length ? undefined : dataSource?.map(item => item.id)}
+      onEditSubmit={(values, record) => {
+        if (_.isEqual(record, { ...record, ...values })) {
+          message.info("内容未更改", 2);
+          return;
+        }
+        setMenu(values).then(() => {
+          execute(props.dispatch, {
+            type: "menu/fetchAllMenus"
+          })
+        })
+      }}
+      expandedRowKeys={dataSource?.length === props?.menu?.menus?.length ? undefined : dataSource?.map(item => item.id)}
       dataSource={dataSource}
       search={false}
       toolBarRender={() => [
         <Button type="primary" onClick={() => {
-          showMenuEditor(form, props?.currentMenus)
+          showMenuEditor(form, props?.menu?.menus)
         }}>新建菜单</Button>,
         <Input.Search placeholder="搜索菜单" onSearch={value => setSearch(value)} allowClear/>
       ]}
@@ -144,7 +197,7 @@ function MenuList(props: LoginState) {
 
 export default connect(
   ({
-     login
+     login, menu
    }: ConnectState) => ({
-    ...login
+    login, menu
   }))(MenuList)

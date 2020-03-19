@@ -89,7 +89,7 @@ export default {
   // umi routes: https://umijs.org/zh/guide/router.html
   routes: [
     {
-      path: '/user',
+      path: '/user/login.html',
       component: '../layouts/UserLayout',
       routes: [
         {
@@ -117,23 +117,18 @@ export default {
               component: './dashbord/Dashbord',
             },
             {
-              name: 'list.table-list',
-              path: '/list',
-              component: './ListTableList',
-            },
-            {
               name: "文章列表",
-              path: "/content/article/list.html",
+              path: "/content/articles/list.html",
               component: "./article/ArticleList"
             },
             {
               name: "新建文章",
-              path: "/content/article/editor.html",
+              path: "/content/articles/editor.html",
               component: "./article/ArticleEditor"
             },
             {
               name: "编辑文章",
-              path: "/content/article/editor/:id.html",
+              path: "/content/articles/editor/:id.html",
               component: "./article/ArticleEditor"
             },
             {

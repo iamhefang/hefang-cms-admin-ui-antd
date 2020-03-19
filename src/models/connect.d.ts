@@ -9,6 +9,7 @@ import { Dispatch } from "dva";
 import { ArticleState } from "@/models/article";
 import { DashbordState } from "@/models/dashbord";
 import { ProfileState } from "@/models/profile";
+import { MenuState } from "@/models/menu";
 
 export { GlobalModelState, SettingModelState, UserModelState };
 
@@ -33,6 +34,7 @@ export interface ConnectState {
   article: ArticleState
   dashbord: DashbordState
   profile: ProfileState
+  menu: MenuState
 }
 
 export interface Route extends MenuDataItem {

@@ -25,12 +25,6 @@ const ProfileModel: ModelType<ProfileState, ProfileReducers, ProfileEffects, "pr
   namespace: 'profile',
 
   state: {
-    articles: {
-      current: 1,
-      total: 0,
-      size: 20,
-      data: []
-    },
     comments: []
   },
 

@@ -201,7 +201,6 @@ function ArticleList(props: ArticleListProps) {
     },
     {
       title: "标签",
-      width: 150,
       render: (_, record: Article) => {
         return record?.tags?.length ? record.tags.map(tag => <Tag>{tag}</Tag>) : "无标签"
       }
@@ -285,7 +284,7 @@ function ArticleList(props: ArticleListProps) {
             <Button type="link" icon={<SubnodeOutlined/>}/>
           </Popconfirm>}
         <Divider type="vertical"/>
-        <Link to={`/content/article/editor/${record.id}.html`}>
+        <Link to={`/content/articles/editor/${record.id}.html`}>
           <Button type="link" icon={<EditOutlined/>} title="编辑"/>
         </Link>
       </>
@@ -317,7 +316,7 @@ function ArticleList(props: ArticleListProps) {
           })
         }}
         toolBarRender={(action, { selectedRowKeys, selectedRows }) => [
-          <Link to="/content/article/editor.html">
+          <Link to="/content/articles/editor.html">
             <Button type="primary">
               <PlusOutlined/> 新建
             </Button>
@@ -326,7 +325,7 @@ function ArticleList(props: ArticleListProps) {
             <Dropdown
               overlay={() => renderDropdownMenu(selectedRowKeys as string[], selectedRows, action)}>
               <Button type="danger">
-                批量操作 <DownOutlined/>
+                批量删除 <DownOutlined/>
               </Button>
             </Dropdown>
           )

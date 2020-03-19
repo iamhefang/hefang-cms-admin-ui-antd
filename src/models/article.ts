@@ -4,6 +4,7 @@ import { Effect } from "dva";
 import { queryCategories } from "@/services/category";
 import { Reducer } from "redux";
 import { queryArticle } from "@/services/article";
+import { ContentTag, queryTags } from "@/services/tag";
 
 export interface Article {
   id?: string
@@ -39,20 +40,22 @@ export interface Category {
 
 export interface ArticleState extends Pager<Article> {
   categories: Category[]
+  tags: ContentTag[]
   article: Article
 }
 
-export interface ArticleListReducers {
-  saveCategories: Reducer<ArticleState>
-  saveArticle: Reducer<Article>
+export interface ArticleReducers {
+  saveCategories?: Reducer<ArticleState>
+  saveTags?: Reducer<ContentTag[]>
+  saveArticle?: Reducer<Article>
 }
 
-export interface ArticleListEffects {
-  fetchCategories: Effect
+export interface ArticleEffects {
+  fetchCategoriesAndTags: Effect
   fetchArticle: Effect
 }
 
-const ArticleModel: ModelType<ArticleState, ArticleListReducers, ArticleListEffects, 'article'> = {
+const ArticleModel: ModelType<ArticleState, ArticleReducers, ArticleEffects, 'article'> = {
   namespace: "article",
 
   state: {
@@ -61,6 +64,7 @@ const ArticleModel: ModelType<ArticleState, ArticleListReducers, ArticleListEffe
     size: 10,
     data: [],
     categories: [],
+    tags: [],
     article: {}
   },
 
@@ -72,11 +76,16 @@ const ArticleModel: ModelType<ArticleState, ArticleListReducers, ArticleListEffe
         payload: response.result
       })
     },
-    * fetchCategories({ payload }, { call, put }) {
-      const response: RestPagerResult<Category> = yield call(queryCategories, payload);
+    * fetchCategoriesAndTags({ payload }, { call, put }) {
+      const categories: RestPagerResult<Category> = yield call(queryCategories, payload);
+      const tags: RestPagerResult<ContentTag> = yield call(queryTags, { query: "type=article" });
       yield  put({
         type: "article/saveCategories",
-        payload: response.result.data
+        payload: categories.result.data
+      });
+      yield put({
+        type: "article/saveTags",
+        payload: tags.result.data
       })
     },
   },
@@ -84,6 +93,10 @@ const ArticleModel: ModelType<ArticleState, ArticleListReducers, ArticleListEffe
     // @ts-ignore
     saveCategories(state, { payload }) {
       return { ...state, categories: payload }
+    },
+    // @ts-ignore
+    saveTags(state, { payload }) {
+      return { ...state, tags: payload }
     },
     saveArticle(state, { payload }) {
       return { ...state, article: payload }

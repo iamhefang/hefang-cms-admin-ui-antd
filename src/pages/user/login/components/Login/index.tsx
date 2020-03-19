@@ -1,4 +1,4 @@
-import { Tabs, Form } from 'antd';
+import { Form, Tabs } from 'antd';
 import React, { useState } from 'react';
 import useMergeValue from 'use-merge-value';
 import classNames from 'classnames';
@@ -33,7 +33,6 @@ interface LoginType extends React.FC<LoginProps> {
 const Login: LoginType = props => {
   const { className } = props;
   const [tabs, setTabs] = useState<string[]>([]);
-  const [active, setActive] = useState();
   const [type, setType] = useMergeValue('', {
     value: props.activeKey,
     onChange: props.onTabChange,
@@ -63,14 +62,6 @@ const Login: LoginType = props => {
           removeTab: id => {
             setTabs(tabs.filter(currentId => currentId !== id));
           },
-        },
-        updateActive: activeItem => {
-          if (active[type]) {
-            active[type].push(activeItem);
-          } else {
-            active[type] = [activeItem];
-          }
-          setActive(active);
         },
       }}
     >
