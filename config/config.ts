@@ -142,6 +142,11 @@ export default {
               component: "./user/profile/Profile"
             },
             {
+              name: "配置中心",
+              path: "/setting/configs.html",
+              component: "./setting/SettingCenter"
+            },
+            {
               component: './404',
             },
           ],

@@ -17,6 +17,7 @@ import { getAuthorityFromRouter } from '@/utils/utils';
 import logo from '../assets/logo.svg';
 import { SideMenu } from "@/services/menu";
 import FontAwesomeIcon from "@/components/FontAwesomeIcon/FontAwesomeIcon";
+import HeFangCmsFooter from "@/components/HeFangCmsFooter/HeFangCmsFooter";
 
 const noMatch = (
   <Result
@@ -49,7 +50,7 @@ export type BasicLayoutContext = { [K in 'location']: BasicLayoutProps[K] } & {
   };
 };
 
-const footerRender: BasicLayoutProps['footerRender'] = () => null;
+const footerRender: BasicLayoutProps['footerRender'] = (props, defaultDom) => <HeFangCmsFooter/>;
 
 function menuDataRender(currentMenus?: SideMenu[]): any[] {
   if (!Array.isArray(currentMenus)) return [];
@@ -81,9 +82,6 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       });
     }
   }, []);
-  /**
-   * init variables
-   */
 
   const handleMenuCollapse = (payload: boolean): void => {
     if (dispatch) {
@@ -112,7 +110,6 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
         if (menuItemProps.isUrl || menuItemProps.children || !menuItemProps.path) {
           return defaultDom;
         }
-
         return <Link to={menuItemProps.path}>{defaultDom}</Link>;
       }}
       breadcrumbRender={(routers = []) => [

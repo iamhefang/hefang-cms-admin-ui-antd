@@ -1,11 +1,11 @@
 import { PageHeaderWrapper } from "@ant-design/pro-layout";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { connect } from "react-redux";
 import { ConnectProps, ConnectState } from "@/models/connect";
 import { deleteMenus, setMenu, SideMenu } from "@/services/menu";
-import { Button, Form, Input, InputNumber, message, Modal, Select, Switch } from "antd";
+import { Button, Form, Input, InputNumber, message, Modal, Popconfirm, Select, Switch } from "antd";
 import FontAwesomeIcon from "@/components/FontAwesomeIcon/FontAwesomeIcon";
-import { EditOutlined } from "@ant-design/icons/lib";
+import { EditOutlined, QuestionCircleOutlined } from "@ant-design/icons/lib";
 import { FormInstance, useForm } from "antd/lib/form/Form";
 import { FormItemProps } from "antd/lib/form";
 import _ from "lodash";
@@ -14,6 +14,7 @@ import { MenuState } from "@/models/menu";
 import { execute } from "hefang-js";
 import { LoginState } from "@/models/login";
 import EditableProTable, { EditableProTableColumn } from "@/components/EditableProTable/EditableProTable";
+import { ActionType } from "@ant-design/pro-table";
 
 const formItemLayout: Pick<FormItemProps, "labelCol" | "wrapperCol"> = {
   labelCol: { span: 6 },
@@ -80,12 +81,13 @@ export type MenuListProps = { menu: MenuState, login: LoginState } & ConnectProp
 function MenuList(props: MenuListProps) {
   const [form] = useForm();
   const [search, setSearch] = useState<string>("");
-  const [loading, setLoading] = useState<string>("");
-  useEffect(() => {
+  const refAction = useRef<ActionType>();
+  const reloadData = () => {
     execute(props.dispatch, {
       type: "menu/fetchAllMenus"
     })
-  }, [props.menu?.menus?.length]);
+  };
+  useEffect(reloadData, [props.menu?.menus?.length]);
 
   const columns: EditableProTableColumn<SideMenu>[] = [
     {
@@ -111,6 +113,10 @@ function MenuList(props: MenuListProps) {
       dataIndex: "name",
       width: 200,
       editable: true,
+      render: (name: any) => {
+        name = name.replace(search, `<span style="color: red">${search}</span>`);
+        return <span dangerouslySetInnerHTML={{ __html: name }}/>
+      }
     },
     {
       title: "路径",
@@ -133,21 +139,18 @@ function MenuList(props: MenuListProps) {
       align: "center",
       render: (value: any, record: SideMenu) => {
         return (
-          <Switch
-            checkedChildren="是"
-            unCheckedChildren="否"
-            checked={value}
-            disabled={!!loading && loading !== record.id}
-            loading={loading === record.id}
-            onChange={checked => {
-              setLoading(record.id);
-              deleteMenus([record.id], checked ? DeleteEnum.RESTORE : DeleteEnum.RECYCLE)
-                .then(() => {
-                  execute(props.dispatch, {
-                    type: "menu/fetchAllMenus"
-                  })
-                }).finally(() => setTimeout(() => setLoading(""), 800))
-            }}/>
+          <Popconfirm
+            icon={<QuestionCircleOutlined/>}
+            title={`确定要${record.enable ? '禁用' : '启用'}该菜单吗?`}
+            onConfirm={() => {
+              deleteMenus([record.id], record.enable ? DeleteEnum.RECYCLE : DeleteEnum.RESTORE)
+                .finally(reloadData);
+            }}>
+            <Switch
+              checkedChildren="是"
+              unCheckedChildren="否"
+              checked={value}/>
+          </Popconfirm>
         )
       }
     },
@@ -170,16 +173,20 @@ function MenuList(props: MenuListProps) {
     <EditableProTable<SideMenu>
       columns={columns}
       rowKey="id"
+      loading={props.menu.loading}
+      actionRef={refAction}
+      options={{
+        setting: false,
+        fullScreen: false,
+        density: true,
+        reload: reloadData
+      }}
       onEditSubmit={(values, record) => {
         if (_.isEqual(record, { ...record, ...values })) {
           message.info("内容未更改", 2);
           return;
         }
-        setMenu(values).then(() => {
-          execute(props.dispatch, {
-            type: "menu/fetchAllMenus"
-          })
-        })
+        setMenu(values).then(reloadData)
       }}
       expandedRowKeys={dataSource?.length === props?.menu?.menus?.length ? undefined : dataSource?.map(item => item.id)}
       dataSource={dataSource}
