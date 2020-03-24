@@ -6,9 +6,9 @@ import { formatMessage } from 'umi-plugin-react/locale';
 import { connect } from 'dva';
 // import SelectLang from '@/components/SelectLang';
 import { ConnectProps, ConnectState } from '@/models/connect';
+import { GithubFilled, GlobalOutlined } from '@ant-design/icons/lib';
 import logo from '../assets/logo.svg';
 import styles from './UserLayout.less';
-import { GithubFilled, GlobalOutlined } from "@ant-design/icons/lib";
 
 export interface UserLayoutProps extends ConnectProps {
   breadcrumbNameMap: {
@@ -40,18 +40,16 @@ const UserLayout: React.FC<UserLayoutProps> = props => {
     <>
       <Helmet>
         <title>{title}</title>
-        <meta name="description" content={title}/>
+        <meta name="description" content={title} />
       </Helmet>
 
       <div className={styles.container}>
-        <div className={styles.lang}>
-          {/*<SelectLang/>*/}
-        </div>
+        <div className={styles.lang}>{/* <SelectLang/> */}</div>
         <div className={styles.content}>
           <div className={styles.top}>
             <div className={styles.header}>
               <Link to="/">
-                <img alt="logo" className={styles.logo} src={logo}/>
+                <img alt="logo" className={styles.logo} src={logo} />
                 <span className={styles.title}>何方CMS</span>
               </Link>
             </div>
@@ -59,10 +57,17 @@ const UserLayout: React.FC<UserLayoutProps> = props => {
           </div>
           {children}
         </div>
-        <DefaultFooter links={[
-          { title: <GithubFilled/>, href: "https://github.com/iamhefang/hefang-cms-php", blankTarget: true },
-          { title: <GlobalOutlined/>, href: "https://hefang.link", blankTarget: true }
-        ]} copyright="何方"/>
+        <DefaultFooter
+          links={[
+            {
+              title: <GithubFilled />,
+              href: 'https://github.com/iamhefang/hefang-cms-php',
+              blankTarget: true,
+            },
+            { title: <GlobalOutlined />, href: 'https://hefang.link', blankTarget: true },
+          ]}
+          copyright="何方"
+        />
       </div>
     </>
   );

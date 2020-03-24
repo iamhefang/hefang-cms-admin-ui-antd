@@ -11,10 +11,13 @@ declare module '*.gif';
 declare module '*.bmp';
 declare module '*.tiff';
 declare module 'omit.js';
-declare module 'ckeditor4-react';
+declare module '@ckeditor/ckeditor5-react';
+declare module '@ckeditor/ckeditor5-build-classic';
+declare module '@ckeditor/ckeditor5-build-inline';
+declare module '@ckeditor/ckeditor5-word-count/src/wordcount';
 
 interface CkEditor {
-  getData(): string
+  getData(): string;
 }
 
 // google analytics interface

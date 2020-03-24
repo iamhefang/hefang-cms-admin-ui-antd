@@ -4,10 +4,10 @@ import { ClickParam } from 'antd/es/menu';
 import React from 'react';
 import { connect } from 'dva';
 import { ConnectProps, ConnectState } from '@/models/connect';
+import { Account } from '@/models/login';
+import router from 'umi/router';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
-import { Account } from "@/models/login";
-import router from "umi/router";
 
 export interface GlobalHeaderRightProps extends ConnectProps {
   currentUser?: Account;
@@ -25,9 +25,8 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
           type: 'login/logout',
         });
       }
-      return;
-    } else if (key === "center") {
-      router.push("/user/profile.html")
+    } else if (key === 'center') {
+      router.push('/user/profile.html');
     }
   };
 
@@ -41,16 +40,16 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     const menuHeaderDropdown = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
         <Menu.Item key="center">
-          <UserOutlined/>
+          <UserOutlined />
           个人中心
         </Menu.Item>
         <Menu.Item key="settings">
-          <SettingOutlined/>
+          <SettingOutlined />
           个人设置
         </Menu.Item>
-        <Menu.Divider/>
+        <Menu.Divider />
         <Menu.Item key="logout">
-          <LogoutOutlined/>
+          <LogoutOutlined />
           退出登录
         </Menu.Item>
       </Menu>
@@ -58,7 +57,13 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     return currentUser && currentUser.name ? (
       <HeaderDropdown overlay={menuHeaderDropdown}>
         <span className={`${styles.action} ${styles.account}`}>
-          <Avatar size="small" className={styles.avatar} src={currentUser.avatar} alt="avatar" icon={<UserOutlined/>}/>
+          <Avatar
+            size="small"
+            className={styles.avatar}
+            src={currentUser.avatar}
+            alt="avatar"
+            icon={<UserOutlined />}
+          />
           <span className={styles.name}>{currentUser.name}</span>
         </span>
       </HeaderDropdown>

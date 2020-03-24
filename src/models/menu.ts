@@ -1,55 +1,55 @@
-import { ModelType } from "@/models/global";
-import { RestApiResult } from "@/utils/request";
-import { Effect } from "dva";
-import { Reducer } from "redux";
-import { queryAllMenus, SideMenu } from "@/services/menu";
+import { ModelType } from '@/models/global';
+import { RestApiResult } from '@/utils/request';
+import { Effect } from 'dva';
+import { Reducer } from 'redux';
+import { queryAllMenus, SideMenu } from '@/services/menu';
 
 export interface MenuState {
-  menus?: SideMenu[],
-  loading?: boolean
+  menus?: SideMenu[];
+  loading?: boolean;
 }
 
 export interface MenuEffects {
-  fetchAllMenus: Effect
+  fetchAllMenus: Effect;
 }
 
 export interface MenuReducers {
-  saveAllMenus: Reducer<MenuState>
-  setLoading: Reducer<MenuState>
+  saveAllMenus: Reducer<MenuState>;
+  setLoading: Reducer<MenuState>;
 }
 
-const MenuModel: ModelType<MenuState, MenuReducers, MenuEffects, "menu"> = {
+const MenuModel: ModelType<MenuState, MenuReducers, MenuEffects, 'menu'> = {
   namespace: 'menu',
 
   state: {
-    loading: true
+    loading: true,
   },
 
   effects: {
-    * fetchAllMenus({ payload }, { call, put }) {
+    *fetchAllMenus(_, { call, put }) {
       yield put({
-        type: "menu/setLoading",
-        payload: true
+        type: 'setLoading',
+        payload: true,
       });
       const res: RestApiResult<SideMenu[]> = yield call(queryAllMenus);
       yield put({
-        type: "menu/saveAllMenus",
-        payload: res.result.sort((a, b) => a.sort - b.sort)
+        type: 'saveAllMenus',
+        payload: res.result.sort((a, b) => a.sort - b.sort),
       });
       yield put({
-        type: "menu/setLoading",
-        payload: false
+        type: 'setLoading',
+        payload: false,
       });
-    }
+    },
   },
 
   reducers: {
     saveAllMenus(state, { payload }) {
-      return { ...state, menus: payload }
+      return { ...state, menus: payload };
     },
     setLoading(state, { payload }) {
-      return { ...state, loading: payload }
-    }
+      return { ...state, loading: payload };
+    },
   },
 };
 

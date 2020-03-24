@@ -5,4 +5,8 @@ module.exports = {
     page: true,
     REACT_APP_ENV: true,
   },
+  rules: {
+    'no-unused-expressions': 'warn',
+    'no-dupe-class-members': 'off',
+  },
 };

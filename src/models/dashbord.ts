@@ -1,47 +1,46 @@
-import { ModelType } from "@/models/global";
-import { Effect } from "dva";
-import { queryArticles } from "@/services/article";
-import { Reducer } from "redux";
-import { Pager, RestPagerResult } from "@/utils/request";
-import { Article } from "@/models/article";
-
+import { ModelType } from '@/models/global';
+import { Effect } from 'dva';
+import { queryArticles } from '@/services/article';
+import { Reducer } from 'redux';
+import { Pager, RestPagerResult } from '@/utils/request';
+import { Article } from '@/models/article';
 
 export interface DashbordState {
-  articleDrafts: Pager<Article>
+  articleDrafts: Pager<Article>;
 }
 
 export interface DashbordReducers {
-  saveDrafts: Reducer<DashbordState>
+  saveDrafts: Reducer<DashbordState>;
 }
 
 export interface DashbordEffects {
-  fetchDrafts: Effect
+  fetchDrafts: Effect;
 }
 
-const DashbordModel: ModelType<DashbordState, DashbordReducers, DashbordEffects, "dashbord"> = {
-  namespace: "dashbord",
+const DashbordModel: ModelType<DashbordState, DashbordReducers, DashbordEffects, 'dashbord'> = {
+  namespace: 'dashbord',
 
   state: {
-    articleDrafts: { current: 1, total: 0, size: 0, data: [] }
+    articleDrafts: { current: 1, total: 0, size: 0, data: [] },
   },
 
   effects: {
-    * fetchDrafts({}, { call, put }) {
+    *fetchDrafts(_, { call, put }) {
       const res: RestPagerResult<Article> = yield call(queryArticles, {
         pageSize: 9,
-        query: "isDraft=true",
-        sort: "-postTime"
+        query: 'isDraft=true',
+        sort: '-postTime',
       });
       yield put({
-        type: "dashbord/saveDrafts",
-        payload: res.result
-      })
+        type: 'saveDrafts',
+        payload: res.result,
+      });
     },
   },
 
   reducers: {
     saveDrafts(state, { payload }) {
-      return { ...state, articleDrafts: payload }
+      return { ...state, articleDrafts: payload };
     },
   },
 };

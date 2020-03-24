@@ -45,9 +45,9 @@ const Login: React.FC<LoginProps> = props => {
     <div className={styles.main}>
       <LoginFrom activeKey={type} onTabChange={setType} onSubmit={handleSubmit}>
         <Tab key="account" tab="账户密码登录">
-          {/*{status === 'error' && loginType === 'account' && !submitting && (*/}
-          {/*  <LoginMessage content="账户或密码错误"/>*/}
-          {/*)}*/}
+          {/* {status === 'error' && loginType === 'account' && !submitting && ( */}
+          {/*  <LoginMessage content="账户或密码错误"/> */}
+          {/* )} */}
 
           <UserName
             name="name"
@@ -74,9 +74,7 @@ const Login: React.FC<LoginProps> = props => {
           <Checkbox checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)}>
             自动登录
           </Checkbox>
-          <a style={{ float: 'right', }}>
-            忘记密码
-          </a>
+          <a style={{ float: 'right' }}>忘记密码</a>
         </div>
         <Submit>登录</Submit>
       </LoginFrom>
@@ -84,6 +82,6 @@ const Login: React.FC<LoginProps> = props => {
   );
 };
 
-export default connect(({ login, loading }: ConnectState) => ({
+export default connect(({ login }: ConnectState) => ({
   userLogin: login,
 }))(Login);

@@ -1,48 +1,50 @@
-import { ModelType } from "@/models/global";
-import { Article } from "@/models/article";
-import { Pager, RestPagerResult } from "@/utils/request";
-import { queryArticles } from "@/services/article";
-import { getSessionStorage } from "useful-storage";
-import { StorageKey } from "@/utils/cosnts";
-import { Effect } from "dva";
-import { Reducer } from "redux";
-import { Account } from "@/models/login";
+import { ModelType } from '@/models/global';
+import { Article } from '@/models/article';
+import { Pager, RestPagerResult } from '@/utils/request';
+import { queryArticles } from '@/services/article';
+import { getSessionStorage } from 'useful-storage';
+import { StorageKey } from '@/utils/cosnts';
+import { Effect } from 'dva';
+import { Reducer } from 'redux';
+import { Account } from '@/models/login';
 
 export interface ProfileState {
-  articles?: Pager<Article>,
-  comments?: []
+  articles?: Pager<Article>;
+  comments?: [];
 }
 
 export interface ProfileEffects {
-  fetchMyArticle: Effect
+  fetchMyArticle: Effect;
 }
 
 export interface ProfileReducers {
-  saveArticles: Reducer<ProfileState>
+  saveArticles: Reducer<ProfileState>;
 }
 
-const ProfileModel: ModelType<ProfileState, ProfileReducers, ProfileEffects, "profile"> = {
+const ProfileModel: ModelType<ProfileState, ProfileReducers, ProfileEffects, 'profile'> = {
   namespace: 'profile',
 
   state: {
-    comments: []
+    comments: [],
   },
 
   effects: {
-    * fetchMyArticle({ payload }, { call, put }) {
+    *fetchMyArticle(_, { call, put }) {
       const user: Account = getSessionStorage(StorageKey.CURRENT_USER_SESSION, {});
-      const res: RestPagerResult<Article> = yield call(queryArticles, { query: `authorId=${user.id}` });
+      const res: RestPagerResult<Article> = yield call(queryArticles, {
+        query: `authorId=${user.id}`,
+      });
       yield put({
-        type: "profile/saveArticles",
-        payload: res.result
-      })
-    }
+        type: 'saveArticles',
+        payload: res.result,
+      });
+    },
   },
 
   reducers: {
     saveArticles(state, { payload }) {
-      return { ...state, articles: payload }
-    }
+      return { ...state, articles: payload };
+    },
   },
 };
 

@@ -3,7 +3,11 @@
  * You can view component api by:
  * https://github.com/ant-design/ant-design-pro-layout
  */
-import ProLayout, { BasicLayoutProps as ProLayoutProps, MenuDataItem, Settings, } from '@ant-design/pro-layout';
+import ProLayout, {
+  BasicLayoutProps as ProLayoutProps,
+  MenuDataItem,
+  Settings,
+} from '@ant-design/pro-layout';
 import { formatMessage } from 'umi-plugin-react/locale';
 import React, { useEffect } from 'react';
 import { Link } from 'umi';
@@ -14,10 +18,10 @@ import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { ConnectState } from '@/models/connect';
 import { getAuthorityFromRouter } from '@/utils/utils';
+import { SideMenu } from '@/services/menu';
+import FontAwesomeIcon from '@/components/FontAwesomeIcon/FontAwesomeIcon';
+import HeFangCmsFooter from '@/components/HeFangCmsFooter/HeFangCmsFooter';
 import logo from '../assets/logo.svg';
-import { SideMenu } from "@/services/menu";
-import FontAwesomeIcon from "@/components/FontAwesomeIcon/FontAwesomeIcon";
-import HeFangCmsFooter from "@/components/HeFangCmsFooter/HeFangCmsFooter";
 
 const noMatch = (
   <Result
@@ -41,24 +45,20 @@ export interface BasicLayoutProps extends ProLayoutProps {
   };
   settings: Settings;
   dispatch: Dispatch;
-  currentMenus?: SideMenu[]
+  currentMenus?: SideMenu[];
 }
 
-export type BasicLayoutContext = { [K in 'location']: BasicLayoutProps[K] } & {
-  breadcrumbNameMap: {
-    [path: string]: MenuDataItem;
-  };
-};
-
-const footerRender: BasicLayoutProps['footerRender'] = (props, defaultDom) => <HeFangCmsFooter/>;
+const footerRender: BasicLayoutProps['footerRender'] = () => <HeFangCmsFooter />;
 
 function menuDataRender(currentMenus?: SideMenu[]): any[] {
   if (!Array.isArray(currentMenus)) return [];
-  return currentMenus.sort((a, b) => a.sort - b.sort).map(menu => ({
-    ...menu,
-    icon: <FontAwesomeIcon icon={menu.icon}/>,
-    children: menuDataRender(menu.children)
-  }))
+  return currentMenus
+    .sort((a, b) => a.sort - b.sort)
+    .map(menu => ({
+      ...menu,
+      icon: <FontAwesomeIcon icon={menu.icon} />,
+      children: menuDataRender(menu.children),
+    }));
 }
 
 const BasicLayout: React.FC<BasicLayoutProps> = props => {
@@ -129,20 +129,18 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       }}
       footerRender={footerRender}
       menuDataRender={() => menuDataRender(currentMenus)}
-      rightContentRender={() => <RightContent/>}
+      rightContentRender={() => <RightContent />}
       {...props}
-      {...settings}>
+      {...settings}
+    >
       <Authorized authority={authorized!.authority} noMatch={noMatch}>
         {children}
       </Authorized>
     </ProLayout>
   );
 };
-export default connect(
-  ({
-     global, settings, login
-   }: ConnectState) => ({
-    collapsed: global.collapsed,
-    settings,
-    currentMenus: login.currentMenus
-  }))(BasicLayout);
+export default connect(({ global, settings, login }: ConnectState) => ({
+  collapsed: global.collapsed,
+  settings,
+  currentMenus: login.currentMenus,
+}))(BasicLayout);
