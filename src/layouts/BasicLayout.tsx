@@ -13,28 +13,14 @@ import React, { useEffect } from 'react';
 import { Link } from 'umi';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
-import { Button, Result } from 'antd';
-import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { ConnectState } from '@/models/connect';
-import { getAuthorityFromRouter } from '@/utils/utils';
 import { SideMenu } from '@/services/menu';
 import FontAwesomeIcon from '@/components/FontAwesomeIcon/FontAwesomeIcon';
 import HeFangCmsFooter from '@/components/HeFangCmsFooter/HeFangCmsFooter';
+import { Account } from '@/models/login';
+import ScreenLocker from '@/components/ScreenLocker/ScreenLocker';
 import logo from '../assets/logo.svg';
-
-const noMatch = (
-  <Result
-    status={403}
-    title="403"
-    subTitle="Sorry, you are not authorized to access this page."
-    extra={
-      <Button type="primary">
-        <Link to="/user/login.html">Go Login</Link>
-      </Button>
-    }
-  />
-);
 
 export interface BasicLayoutProps extends ProLayoutProps {
   breadcrumbNameMap: {
@@ -46,6 +32,7 @@ export interface BasicLayoutProps extends ProLayoutProps {
   settings: Settings;
   dispatch: Dispatch;
   currentMenus?: SideMenu[];
+  user?: Account;
 }
 
 const footerRender: BasicLayoutProps['footerRender'] = () => <HeFangCmsFooter />;
@@ -62,15 +49,7 @@ function menuDataRender(currentMenus?: SideMenu[]): any[] {
 }
 
 const BasicLayout: React.FC<BasicLayoutProps> = props => {
-  const {
-    dispatch,
-    children,
-    settings,
-    currentMenus,
-    location = {
-      pathname: '/',
-    },
-  } = props;
+  const { dispatch, children, settings, currentMenus } = props;
   /**
    * constructor
    */
@@ -81,7 +60,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
         type: 'user/fetchCurrent',
       });
     }
-  }, []);
+  }, [props.user?.id]);
 
   const handleMenuCollapse = (payload: boolean): void => {
     if (dispatch) {
@@ -92,9 +71,6 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
     }
   }; // get children authority
 
-  const authorized = getAuthorityFromRouter(props.route.routes, location.pathname || '/') || {
-    authority: undefined,
-  };
   return (
     <ProLayout
       logo={logo}
@@ -133,9 +109,8 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       {...props}
       {...settings}
     >
-      <Authorized authority={authorized!.authority} noMatch={noMatch}>
-        {children}
-      </Authorized>
+      <ScreenLocker show={props?.user?.isLockedScreen} />
+      {children}
     </ProLayout>
   );
 };
@@ -143,4 +118,5 @@ export default connect(({ global, settings, login }: ConnectState) => ({
   collapsed: global.collapsed,
   settings,
   currentMenus: login.currentMenus,
+  user: login.currentUser,
 }))(BasicLayout);

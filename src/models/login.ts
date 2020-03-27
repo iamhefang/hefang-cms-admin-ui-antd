@@ -3,7 +3,7 @@ import { Effect } from 'dva';
 import { stringify } from 'querystring';
 import { router } from 'umi';
 
-import { accountLogin, accountLogout, queryCurrentUser } from '@/services/login';
+import { accountLockScreen, accountLogin, accountLogout, queryCurrentUser } from '@/services/login';
 import { getPageQuery } from '@/utils/utils';
 import { RestApiResult } from '@/utils/request';
 import { md5, sha1 } from 'hefang-js';
@@ -31,6 +31,7 @@ export interface Account {
   lastLoginTime?: string;
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
+  isLockedScreen?: boolean;
 }
 
 export interface LoginState {
@@ -43,6 +44,7 @@ export interface LoginEffects {
   logout: Effect;
   fetchCurrentUser: Effect;
   fetchCurrentMenus: Effect;
+  lockScreen: Effect;
 }
 
 export interface LoginReducers {
@@ -60,6 +62,13 @@ const LoginModel: ModelType<LoginState, LoginReducers, LoginEffects, 'login'> = 
   },
 
   effects: {
+    *lockScreen({ payload: { lock = true, password = '' } = {} }, { call, put }) {
+      const response: RestApiResult<Account> = yield call(accountLockScreen, lock, password);
+      yield put({
+        type: 'saveCurrentUser',
+        payload: response.result,
+      });
+    },
     *login({ payload }, { call, put }) {
       const password = sha1(payload.password) + md5(payload.password);
       const response: RestApiResult<Account> = yield call(accountLogin, { ...payload, password });
@@ -112,6 +121,9 @@ const LoginModel: ModelType<LoginState, LoginReducers, LoginEffects, 'login'> = 
       yield put({
         type: 'saveCurrentUser',
         payload: response.result,
+      });
+      yield put({
+        type: 'fetchCurrentMenus',
       });
     },
     *fetchCurrentMenus(_, { call, put }) {
