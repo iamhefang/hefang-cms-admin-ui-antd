@@ -63,3 +63,30 @@ export const getRouteAuthority = (path: string, routeData: Route[]) => {
   });
   return authorities;
 };
+
+export function setEncodeLocalStorage(name: string, value: any) {
+  localStorage.setItem(
+    name,
+    btoa(
+      JSON.stringify(value)
+        .split('')
+        .reverse()
+        .join(''),
+    ),
+  );
+}
+
+export function getDecodeLocalStorage<T>(name: string, defaultValue: T | null = null): T | null {
+  const value = localStorage.getItem(name);
+  if (!value) return defaultValue;
+  try {
+    return JSON.parse(
+      atob(value)
+        .split('')
+        .reverse()
+        .join(''),
+    );
+  } catch (e) {
+    return defaultValue;
+  }
+}

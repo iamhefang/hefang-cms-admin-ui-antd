@@ -24,6 +24,7 @@ import CommonForm from '@/components/CommonForm/CommonForm';
 import { DislikeOutlined, EyeOutlined, LikeOutlined, UserOutlined } from '@ant-design/icons/lib';
 import { ProfileState } from '@/models/profile';
 import moment from 'moment';
+import { execute } from 'hefang-js';
 
 export type ProfileProps = {
   login: LoginState;
@@ -38,10 +39,9 @@ function Profile(props: ProfileProps) {
   } = props;
   const [showModal, toggleModal] = useState(false);
   useEffect(() => {
-    props.dispatch &&
-      props.dispatch({
-        type: 'profile/fetchMyArticle',
-      });
+    execute(props.dispatch, {
+      type: 'profile/fetchMyArticle',
+    });
   }, [articles?.total]);
   const formItems: FormItemProps[] = [
     // {

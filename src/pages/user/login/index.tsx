@@ -38,7 +38,7 @@ const Login: React.FC<LoginProps> = props => {
     const { dispatch } = props;
     dispatch({
       type: 'login/login',
-      payload: { ...values, type },
+      payload: { ...values, autoLogin },
     });
   };
   return (

@@ -185,12 +185,12 @@ function MenuList(props: MenuListProps) {
           density: true,
           reload: reloadData,
         }}
-        onEditSubmit={(values, record) => {
+        onEditSubmit={(values, record: SideMenu) => {
           if (_.isEqual(record, { ...record, ...values })) {
             message.info('内容未更改', 2);
             return;
           }
-          setMenu(values).then(reloadData);
+          setMenu({ ...values, id: record.id }).then(reloadData);
         }}
         expandedRowKeys={
           dataSource?.length === props?.menu?.menus?.length

@@ -1,4 +1,11 @@
-import { isUrl, getRouteAuthority } from './utils';
+import { getRouteAuthority, isUrl } from './utils';
+
+// describe("encodeStorage 测试", function () {
+//   it('编码前和解码后应该相等', function () {
+//     const content = Math.random()+"";
+//     expect(setEncodeLocalStorage(content))
+//   });
+// });
 
 describe('isUrl tests', (): void => {
   it('should return false for invalid and corner case inputs', (): void => {

@@ -3,8 +3,14 @@ import { Effect } from 'dva';
 import { stringify } from 'querystring';
 import { router } from 'umi';
 
-import { accountLockScreen, accountLogin, accountLogout, queryCurrentUser } from '@/services/login';
-import { getPageQuery } from '@/utils/utils';
+import {
+  accountLockScreen,
+  accountLogin,
+  accountLogout,
+  heartbeat,
+  queryCurrentUser,
+} from '@/services/login';
+import { getPageQuery, setEncodeLocalStorage } from '@/utils/utils';
 import { RestApiResult } from '@/utils/request';
 import { md5, sha1 } from 'hefang-js';
 import { getSessionStorage, setSessionStorage } from 'useful-storage';
@@ -45,6 +51,7 @@ export interface LoginEffects {
   fetchCurrentUser: Effect;
   fetchCurrentMenus: Effect;
   lockScreen: Effect;
+  heartbeat: Effect;
 }
 
 export interface LoginReducers {
@@ -81,6 +88,7 @@ const LoginModel: ModelType<LoginState, LoginReducers, LoginEffects, 'login'> = 
       });
       // Login successfully
       if (response.status === 200) {
+        setEncodeLocalStorage(StorageKey.LOGIN_INFO_LOCAL, payload);
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params as { redirect: string };
@@ -132,6 +140,9 @@ const LoginModel: ModelType<LoginState, LoginReducers, LoginEffects, 'login'> = 
         type: 'saveCurrentMenus',
         payload: response.result,
       });
+    },
+    *heartbeat(_, { call }) {
+      yield call(heartbeat);
     },
   },
 

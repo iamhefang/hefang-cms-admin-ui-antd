@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import { FormInstance } from 'antd/es/form';
 import { LoginParamsType } from '@/services/login';
 
+import { getDecodeLocalStorage } from '@/utils/utils';
+import { StorageKey } from '@/utils/cosnts';
 import LoginContext from './LoginContext';
 import LoginItem, { LoginItemProps } from './LoginItem';
 import LoginSubmit from './LoginSubmit';
@@ -37,6 +39,7 @@ const Login: LoginType = props => {
     value: props.activeKey,
     onChange: props.onTabChange,
   });
+  const info = getDecodeLocalStorage(StorageKey.LOGIN_INFO_LOCAL, {});
   const TabChildren: React.ReactComponentElement<typeof LoginTab>[] = [];
   const otherChildren: React.ReactElement<unknown>[] = [];
   React.Children.forEach(
@@ -68,6 +71,7 @@ const Login: LoginType = props => {
       <div className={classNames(className, styles.login)}>
         <Form
           form={props.from}
+          initialValues={info as any}
           onFinish={values => {
             if (props.onSubmit) {
               props.onSubmit(values as LoginParamsType);

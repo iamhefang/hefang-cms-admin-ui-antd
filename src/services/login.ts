@@ -20,7 +20,7 @@ export async function accountLockScreen(lock: boolean, password?: string): RestA
   return request(`/apis/user/account/screen/${lock ? 'lock' : 'unlock'}.json`, {
     method: MethodEnum.POST,
     data: {
-      password: md5(password as string) + sha1(password as string),
+      password: sha1(password as string) + md5(password as string),
     },
   });
 }
@@ -31,4 +31,8 @@ export async function accountLogout(): Promise<RestApiResult<string>> {
 
 export async function queryCurrentUser(): RestApiPromise<Account> {
   return request('/apis/user/account/current.json');
+}
+
+export async function heartbeat(): RestApiPromise<string[]> {
+  return request('/apis/user/account/heartbeat.json');
 }

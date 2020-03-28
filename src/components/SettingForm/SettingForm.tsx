@@ -25,6 +25,39 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
     this.state = {};
   }
 
+  private renderFormItem = (setting: Setting) => {
+    const { attribute, name, category, key, type, nullable } = setting;
+    const props = JSON.parse(attribute || '{}');
+    let child = null;
+    switch (type) {
+      case 'switch':
+        child = <Switch {...props} />;
+        break;
+      case 'select':
+        child = <Select placeholder={`请选择${name}`} {...props} />;
+        break;
+      case 'checkbox':
+        child = <Checkbox.Group></Checkbox.Group>;
+        break;
+      case 'password':
+        child = <Input.Password placeholder={`请输入${name}`} {...props} />;
+        break;
+      case 'textarea':
+        child = <Input.TextArea rows={3} placeholder={`请输入${name}`} type={type} {...props} />;
+        break;
+      case 'html':
+        child = <CKEditor placeholder={`请输入${name}`} />;
+        break;
+      default:
+        child = <Input placeholder={`请输入${name}`} type={type} {...props} />;
+    }
+    return (
+      <Form.Item label={name} name={`${category}|${key}`} required={!nullable}>
+        {child}
+      </Form.Item>
+    );
+  };
+
   render() {
     const { settings } = this.props;
     const initialValues = {};
@@ -56,39 +89,4 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
       </Form>
     );
   }
-
-  private renderFormItem = (setting: Setting) => {
-    const { attribute, name, category, key, type, nullable } = setting;
-    const props = JSON.parse(attribute || '{}');
-    let child = null;
-    switch (type) {
-      case 'switch':
-        child = <Switch {...props} />;
-        break;
-      case 'select':
-        child = <Select placeholder={`请选择${name}`} {...props} />;
-        break;
-      case 'checkbox':
-        child = <Checkbox.Group></Checkbox.Group>;
-        break;
-      case 'password':
-        child = <Input.Password placeholder={`请输入${name}`} {...props} />;
-        break;
-      case 'textarea':
-        child = <Input.TextArea rows={3} placeholder={`请输入${name}`} type={type} {...props} />;
-        break;
-      case 'html':
-        child = <CKEditor placeholder={`请输入${name}`} />;
-        break;
-      default:
-        child = <Input placeholder={`请输入${name}`} type={type} {...props} />;
-    }
-    return (
-      // <div onMouseOver={() => this.setState({ currentHover: setting })}>
-      <Form.Item label={name} name={`${category}|${key}`} required={!nullable}>
-        {child}
-      </Form.Item>
-      // </div>
-    );
-  };
 }
