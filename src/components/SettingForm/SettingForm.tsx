@@ -1,14 +1,18 @@
 import React from 'react';
-import { Checkbox, Col, Empty, Form, Input, Row, Select, Switch, Tabs } from 'antd';
+import { Col, Empty, Form, Input, Row, Select, Switch, Tabs } from 'antd';
 import { TabsPosition } from 'antd/lib/tabs';
 import { Setting, SettingCategory } from '@/services/setting';
 import { FormInstance } from 'antd/lib/form';
 import CKEditor from '@/components/CKEditor/CKEditor';
+import memoizeOne from 'memoize-one';
+import _ from 'lodash';
+import { execute } from 'hefang-js';
 
 export interface SettingFormProps {
   settings: SettingCategory[];
   catePosition?: TabsPosition;
   form?: FormInstance;
+  formRef?: (form: FormInstance) => void;
 }
 
 interface SettingFormState {
@@ -20,9 +24,27 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
     catePosition: 'left',
   };
 
+  private form: FormInstance | null = null;
+
+  private initialValues = memoizeOne(settings => {
+    const initialValues = {};
+    settings.forEach((cate: { settings: Setting[] }) => {
+      cate.settings.forEach(item => {
+        initialValues[`${item.category}|${item.key}`] = item.value;
+      });
+    });
+    return initialValues;
+  });
+
   constructor(props: SettingFormProps) {
     super(props);
     this.state = {};
+  }
+
+  componentDidUpdate(prevProps: Readonly<SettingFormProps>): void {
+    if (!_.isEqual(prevProps.settings, this.props.settings) && this.form) {
+      this.form.setFieldsValue(this.initialValues(this.props.settings));
+    }
   }
 
   private renderFormItem = (setting: Setting) => {
@@ -36,9 +58,9 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
       case 'select':
         child = <Select placeholder={`请选择${name}`} {...props} />;
         break;
-      case 'checkbox':
-        child = <Checkbox.Group></Checkbox.Group>;
-        break;
+      // case 'checkbox':
+      //   child = <Checkbox.Group></Checkbox.Group>;
+      //   break;
       case 'password':
         child = <Input.Password placeholder={`请输入${name}`} {...props} />;
         break;
@@ -52,7 +74,11 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
         child = <Input placeholder={`请输入${name}`} type={type} {...props} />;
     }
     return (
-      <Form.Item label={name} name={`${category}|${key}`} required={!nullable}>
+      <Form.Item
+        label={name}
+        name={`${category}|${key}`}
+        rules={[{ required: !nullable, message: nullable ? undefined : '该项不能为空' }]}
+      >
         {child}
       </Form.Item>
     );
@@ -60,15 +86,17 @@ export default class SettingForm extends React.Component<SettingFormProps, Setti
 
   render() {
     const { settings } = this.props;
-    const initialValues = {};
 
-    settings.forEach(cate => {
-      cate.settings.forEach(item => {
-        initialValues[`${item.category}|${item.key}`] = item.value;
-      });
-    });
     return (
-      <Form initialValues={initialValues} layout="vertical" form={this.props.form}>
+      <Form
+        initialValues={this.initialValues(settings)}
+        layout="vertical"
+        form={this.props.form}
+        ref={form => {
+          this.form = form;
+          execute(this.props.formRef, form);
+        }}
+      >
         <Tabs tabPosition={this.props.catePosition} style={{ minHeight: 200 }}>
           {settings.map(cate => (
             <Tabs.TabPane key={`setting-category-${cate.id}`} tab={cate.name}>

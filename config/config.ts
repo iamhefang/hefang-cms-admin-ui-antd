@@ -35,11 +35,11 @@ const plugins: IPlugin[] = [
       },
       pwa: pwa
         ? {
-          workboxPluginMode: 'InjectManifest',
-          workboxOptions: {
-            importWorkboxFrom: 'local',
-          },
-        }
+            workboxPluginMode: 'InjectManifest',
+            workboxOptions: {
+              importWorkboxFrom: 'local',
+            },
+          }
         : false,
       // default close dll, because issue https://github.com/ant-design/ant-design-pro/issues/4665
       // dll features https://webpack.js.org/plugins/dll-plugin/
@@ -82,7 +82,9 @@ if (isAntDesignProPreview) {
 export default {
   plugins,
   hash: true,
-  // history: "hash",
+  base: '/',
+  publicPath: '/admin-ui/',
+  history: 'hash',
   targets: {
     ie: 11,
   },
@@ -117,34 +119,39 @@ export default {
               component: './dashbord/Dashbord',
             },
             {
-              name: "文章列表",
-              path: "/content/articles/list.html",
-              component: "./article/ArticleList"
+              name: '文章列表',
+              path: '/content/articles/list.html',
+              component: './article/ArticleList',
             },
             {
-              name: "新建文章",
-              path: "/content/articles/editor.html",
-              component: "./article/ArticleEditor"
+              name: '新建文章',
+              path: '/content/articles/editor.html',
+              component: './article/ArticleEditor',
             },
             {
-              name: "编辑文章",
-              path: "/content/articles/editor/:id.html",
-              component: "./article/ArticleEditor"
+              name: '编辑文章',
+              path: '/content/articles/editor/:id.html',
+              component: './article/ArticleEditor',
             },
             {
-              name: "菜单管理",
-              path: "/setting/menus.html",
-              component: "./menu/MenuList"
+              name: '菜单管理',
+              path: '/setting/menus.html',
+              component: './menu/MenuList',
             },
             {
-              name: "个人中心",
-              path: "/user/profile.html",
-              component: "./user/profile/Profile"
+              name: '主题管理',
+              path: '/setting/themes.html',
+              component: './theme/ThemeList.tsx',
             },
             {
-              name: "配置中心",
-              path: "/setting/configs.html",
-              component: "./setting/SettingCenter"
+              name: '个人中心',
+              path: '/user/profile.html',
+              component: './user/profile/Profile',
+            },
+            {
+              name: '配置中心',
+              path: '/setting/configs.html',
+              component: './setting/SettingCenter',
             },
             {
               component: './404',
@@ -203,8 +210,16 @@ export default {
     },
   },
   manifest: {
-    basePath: '/',
+    basePath: '/admin-ui/',
   },
   proxy: proxy[REACT_APP_ENV || 'dev'],
   chainWebpack: webpackPlugin,
+  externals: {
+    react: 'window.React',
+    'react-dom': 'window.ReactDOM',
+    'react-redux': 'window.ReactRedux',
+    'react-router': 'window.ReactRouter',
+    // "react-router-dom": "window.ReactRouterDOM",
+  },
+  runtimePublicPath: true,
 } as IConfig;

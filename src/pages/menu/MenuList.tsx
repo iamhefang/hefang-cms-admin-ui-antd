@@ -1,6 +1,6 @@
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
-import { connect } from 'react-redux';
+import { connect } from 'dva';
 import { ConnectProps, ConnectState } from '@/models/connect';
 import { deleteMenus, setMenu, SideMenu } from '@/services/menu';
 import { Button, Form, Input, InputNumber, message, Modal, Popconfirm, Select, Switch } from 'antd';
@@ -133,7 +133,7 @@ function MenuList(props: MenuListProps) {
       title: '排序',
       dataIndex: 'sort',
       width: 120,
-      sorter: (a, b) => a.sort - b.sort,
+      sorter: (a: SideMenu, b: SideMenu) => a.sort - b.sort,
       align: 'center',
       editable: true,
       editType: 'number',
@@ -162,7 +162,7 @@ function MenuList(props: MenuListProps) {
       title: '操作',
       width: 120,
       align: 'center',
-      render: (text, record: SideMenu): ReactElement[] => [
+      render: (text: any, record: SideMenu): ReactElement[] => [
         <Button
           type="link"
           icon={<EditOutlined />}

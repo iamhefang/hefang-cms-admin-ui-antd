@@ -2,7 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { Article, ArticleState, Category } from '@/models/article';
 import { connect } from 'dva';
-import ProTable, { ActionType, ProColumns, RequestData } from '@ant-design/pro-table';
+import ProTable, {
+  ActionType,
+  ColumnsState,
+  IntlType,
+  ProColumns,
+  RequestData,
+} from '@ant-design/pro-table';
 import { ConnectProps, ConnectState } from '@/models/connect';
 import { Button, Divider, Dropdown, Menu, Modal, Popconfirm, Tag } from 'antd';
 import {
@@ -23,6 +29,8 @@ import { PaginationConfig } from 'antd/es/pagination';
 import { chainingCheck, execute } from 'hefang-js';
 import { Account } from '@/models/login';
 import { Link } from 'umi';
+import _ from 'lodash';
+import { UseFetchDataAction } from '@ant-design/pro-table/lib/useFetchData';
 
 type ArticleListProps = ConnectProps & ArticleState & { login?: Account };
 
@@ -32,6 +40,7 @@ export interface ArticleListInnerState {
   categoryName?: string | null;
   categoryId?: string[] | null;
   sort?: string | null;
+  type?: string;
 }
 
 const SORTER_MAP = {
@@ -59,7 +68,7 @@ function showArticlePreviewModal(article: Article) {
 function doRequest(
   params?: { pageSize?: number; current?: number } & ArticleListInnerState,
 ): Promise<RequestData<Article>> {
-  const { pageSize = 10, current = 1, sort = '', title, postTime, categoryId } = params || {};
+  const { pageSize = 10, current = 1, sort = '', title, postTime, categoryId, type } = params || {};
   const query: string[] = [];
   if (title) {
     query.push(`title~=${title}`);
@@ -73,6 +82,9 @@ function doRequest(
   }
   if (categoryId?.length) {
     query.push(`(${categoryId.map(id => `categoryId=${id}`).join(' OR ')})`);
+  }
+  if (type) {
+    query.push(`type=${type}`);
   }
 
   return new Promise((resolve, reject) => {
@@ -96,9 +108,7 @@ function doRequest(
 function handleCategoriesSearch(categories: Category[]) {
   const valueEnum = {};
   categories.forEach(item => {
-    valueEnum[`valueEnum${item.id}`] = {
-      text: item.name,
-    };
+    valueEnum[item.id] = item.name;
   });
   return valueEnum;
 }
@@ -110,7 +120,14 @@ function handleCategoriesFilters(categories: Category[]) {
   }));
 }
 
-function renderTableAlert(selectedRowKeys: (string | number)[], selectedRows: Article[]) {
+function renderTableAlert({
+  selectedRowKeys = [],
+  selectedRows = [],
+}: {
+  intl: IntlType;
+  selectedRowKeys: (string | number)[];
+  selectedRows: Article[];
+}) {
   return (
     <div>
       已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项&nbsp;&nbsp;
@@ -129,7 +146,7 @@ function renderPageTotal(total: number) {
 function renderDropdownMenu(
   selectedRowKeys: string[],
   selectedRows: Article[],
-  action: ActionType,
+  action: UseFetchDataAction<RequestData<Article>>,
 ) {
   const selectedMap = {
     [DeleteEnum.DESTROY]: selectedRowKeys,
@@ -175,27 +192,58 @@ function renderDropdownMenu(
   );
 }
 
+const fixedState: { [key: string]: ColumnsState } = {
+  number: { show: true },
+  title: { show: true },
+};
+const typeMap = {
+  article: '文章',
+  page: '页面',
+};
+
 function ArticleList(props: ArticleListProps) {
-  const { categories = [], current, total, size, data, dispatch, login } = props;
+  const { categories = [], data, dispatch, login } = props;
   useEffect(() => {
     execute(dispatch, {
-      type: 'article/fetchCategories',
+      type: 'article/fetchCategoriesAndTags',
     });
   }, [categories.length]);
   const refAction = useRef<ActionType>();
   const [state, setState] = useState<ArticleListInnerState>({});
+  const [columnState, setColState] = useState<{ [key: string]: ColumnsState }>(
+    _.merge(
+      {
+        categoryId: { show: window.innerWidth > 1600 },
+        tags: { show: window.innerWidth > 1600 },
+      },
+      fixedState,
+    ),
+  );
   const columns: ProColumns<Article>[] = [
     {
       title: '编号',
       width: 75,
+      key: 'number',
       align: 'center',
       renderText: (text: any, record: Article, index: number) => `${index + 1}`,
+    },
+    {
+      title: '类型',
+      dataIndex: 'type',
+      align: 'center',
+      width: 80,
+      renderText: text => chainingCheck(typeMap, text) || text,
+      valueEnum: typeMap,
     },
     {
       title: '标题',
       dataIndex: 'title',
       render: (text: React.ReactNode, record: Article) => (
-        <Button type="link" onClick={() => showArticlePreviewModal(record)}>
+        <Button
+          type="link"
+          style={{ paddingLeft: 0 }}
+          onClick={() => showArticlePreviewModal(record)}
+        >
           {text}
         </Button>
       ),
@@ -204,6 +252,7 @@ function ArticleList(props: ArticleListProps) {
         placeholder: '请输入标题',
         allowClear: true,
       },
+      fixed: true,
     },
     {
       title: '分类',
@@ -232,7 +281,9 @@ function ArticleList(props: ArticleListProps) {
     },
     {
       title: '标签',
-      render: (_, record: Article) =>
+      dataIndex: 'tags',
+      hideInSearch: true,
+      render: (__, record: Article) =>
         record?.tags?.length ? record.tags.map(tag => <Tag>{tag}</Tag>) : '无标签',
     },
     {
@@ -294,7 +345,7 @@ function ArticleList(props: ArticleListProps) {
     title: '操作',
     width: 120,
     align: 'center',
-    render: (_, record: Article) => (
+    render: (__, record: Article) => (
       <>
         {record.enable ? (
           <Popconfirm
@@ -304,7 +355,7 @@ function ArticleList(props: ArticleListProps) {
               deleteArticles([record.id as string]).finally(() => refAction?.current?.reload());
             }}
           >
-            <Button type="link" title="删除" icon={<DeleteOutlined />} />
+            <Button type="link" danger title="删除" icon={<DeleteOutlined />} />
           </Popconfirm>
         ) : (
           <Popconfirm title="确定要还原该文章吗?">
@@ -324,12 +375,15 @@ function ArticleList(props: ArticleListProps) {
         headerTitle="文章列表"
         columns={columns}
         dataSource={data}
+        columnsStateMap={columnState}
+        onColumnsStateChange={newState => setColState(_.merge(newState, fixedState))}
         onSubmit={(values: ArticleListInnerState) => {
           setState({
             title: '',
             postTime: [],
             categoryName: '',
             categoryId: [],
+            type: '',
             ...values,
           });
         }}
@@ -337,11 +391,14 @@ function ArticleList(props: ArticleListProps) {
         actionRef={refAction}
         params={state}
         onChange={(
-          _: PaginationConfig,
+          __: PaginationConfig,
           filters: Record<string, Key[] | null>,
           sorter: SorterResult<Article> | SorterResult<Article>[],
         ) => {
           const realSorter: SorterResult<Article>[] = Array.isArray(sorter) ? sorter : [sorter];
+          if (_.isEmpty(sorter) || _.isEmpty(realSorter)) {
+            return;
+          }
           setState({
             sort: realSorter
               .map(item => `${chainingCheck(SORTER_MAP, item?.order as string) || ''}${item.field}`)
@@ -349,7 +406,10 @@ function ArticleList(props: ArticleListProps) {
             categoryId: filters?.categoryId as string[],
           });
         }}
-        toolBarRender={(action, { selectedRowKeys, selectedRows }) => [
+        toolBarRender={(
+          action: UseFetchDataAction<RequestData<Article>>,
+          { selectedRowKeys, selectedRows },
+        ) => [
           <Link to="/content/articles/editor.html">
             <Button type="primary">
               <PlusOutlined /> 新建
@@ -369,9 +429,6 @@ function ArticleList(props: ArticleListProps) {
         rowSelection={{ type: 'checkbox' }}
         request={doRequest}
         pagination={{
-          current,
-          total,
-          pageSize: size,
           showTotal: renderPageTotal,
           showSizeChanger: true,
         }}

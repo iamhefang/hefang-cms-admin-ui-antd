@@ -1,4 +1,4 @@
-import request, { RestPagerPromise } from '@/utils/request';
+import request, { MethodEnum, RestApiPromise, RestPagerPromise } from '@/utils/request';
 
 export type SettingType =
   | string
@@ -36,4 +36,12 @@ export interface Setting {
 
 export async function queryAllSettingCategories(): RestPagerPromise<SettingCategory> {
   return request('/apis/admin/settingcategory/list.json');
+}
+
+export async function saveSettings(data: { [key: string]: any }): RestApiPromise {
+  return request('/apis/admin/setting/set.json', {
+    method: MethodEnum.POST,
+    data,
+    successMessage: true,
+  });
 }

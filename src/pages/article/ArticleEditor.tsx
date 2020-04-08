@@ -14,7 +14,7 @@ import CKEditor from '@/components/CKEditor/CKEditor';
 import { PlusOutlined } from '@ant-design/icons/lib';
 import CategoryEditorForm from '@/pages/article/components/CategoryEditorForm';
 
-export type ArticleEditorProps = ConnectProps & ArticleState;
+export type ArticleEditorProps = ConnectProps<any> & ArticleState;
 
 export interface ArticleEditorState {
   article: Article | null;
@@ -26,7 +26,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   private infoCardId = guid();
 
-  private id = this.props?.match?.params['id'] || guid();
+  private id = this.props?.match?.params?.id || guid();
 
   private article: Article = {};
 
@@ -40,7 +40,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   componentDidMount(): void {
     const { dispatch } = this.props;
-    const id = this.props?.match?.params['id'];
+    const { id } = this.props?.match?.params || {};
     execute(dispatch, { type: 'article/fetchCategoriesAndTags' });
     id &&
       queryArticle(id).then(res => {
@@ -59,7 +59,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
     this.setState({ submitting: true });
     setArticle(
       { ...this.state.article, ...values },
-      this.props?.match?.params['id'] ? MethodEnum.PUT : MethodEnum.POST,
+      this.props?.match?.params?.id ? MethodEnum.PUT : MethodEnum.POST,
     )
       .then(() => {
         Modal.success({
@@ -88,8 +88,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
       <Form
         layout="vertical"
         name="article"
-        initialValues={article as Article}
-        onChange={console.log}
+        initialValues={_.merge({ type: 'article' }, article) as Article}
         ref={this.refForm}
         onFinish={this.onFormFinish}
       >
@@ -121,6 +120,16 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
                 </Button>,
               ]}
             >
+              <Form.Item
+                label="类型"
+                name="type"
+                rules={[{ required: true, message: '请选择文章类型' }]}
+              >
+                <Select>
+                  <Select.Option value="article">文章</Select.Option>
+                  <Select.Option value="page">页面</Select.Option>
+                </Select>
+              </Form.Item>
               <Form.Item
                 label="标题"
                 name="title"
@@ -206,7 +215,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   render() {
     const { article } = this.state;
-    const id = this.props?.match?.params['id'];
+    const { id } = this.props?.match?.params || {};
     return (
       <PageHeaderWrapper title={id ? '编辑文章' : '新建文章'} key={this.id}>
         {article === null && id ? this.renderSkeleton() : this.renderForm()}

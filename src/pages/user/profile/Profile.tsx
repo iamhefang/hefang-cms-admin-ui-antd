@@ -175,8 +175,8 @@ function Profile(props: ProfileProps) {
                   />
                 </Skeleton>
               </Tabs.TabPane>
-              <Tabs.TabPane tab="评论" key="comments"></Tabs.TabPane>
-              <Tabs.TabPane tab="文件" key="files"></Tabs.TabPane>
+              <Tabs.TabPane tab="评论" key="comments" />
+              <Tabs.TabPane tab="文件" key="files" />
             </Tabs>
           </Card>
         </Col>

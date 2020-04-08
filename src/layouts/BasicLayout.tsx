@@ -20,6 +20,8 @@ import FontAwesomeIcon from '@/components/FontAwesomeIcon/FontAwesomeIcon';
 import HeFangCmsFooter from '@/components/HeFangCmsFooter/HeFangCmsFooter';
 import { Account } from '@/models/login';
 import ScreenLocker from '@/components/ScreenLocker/ScreenLocker';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/es/locale/zh_CN';
 import logo from '../assets/logo.svg';
 
 export interface BasicLayoutProps extends ProLayoutProps {
@@ -72,46 +74,48 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
   }; // get children authority
 
   return (
-    <ProLayout
-      logo={logo}
-      formatMessage={formatMessage}
-      menuHeaderRender={(logoDom, titleDom) => (
-        <Link to="/">
-          {logoDom}
-          {titleDom}
-        </Link>
-      )}
-      onCollapse={handleMenuCollapse}
-      menuItemRender={(menuItemProps, defaultDom) => {
-        if (menuItemProps.isUrl || menuItemProps.children || !menuItemProps.path) {
-          return defaultDom;
-        }
-        return <Link to={menuItemProps.path}>{defaultDom}</Link>;
-      }}
-      breadcrumbRender={(routers = []) => [
-        {
-          path: '/',
-          breadcrumbName: '首页',
-        },
-        ...routers,
-      ]}
-      itemRender={(route, params, routes, paths) => {
-        const first = routes.indexOf(route) === 0;
-        return first ? (
-          <Link to={paths.join('/')}>{route.breadcrumbName}</Link>
-        ) : (
-          <span>{route.breadcrumbName}</span>
-        );
-      }}
-      footerRender={footerRender}
-      menuDataRender={() => menuDataRender(currentMenus)}
-      rightContentRender={() => <RightContent />}
-      {...props}
-      {...settings}
-    >
-      <ScreenLocker show={props?.user?.isLockedScreen} />
-      {children}
-    </ProLayout>
+    <ConfigProvider locale={zhCN}>
+      <ProLayout
+        logo={logo}
+        formatMessage={formatMessage}
+        menuHeaderRender={(logoDom, titleDom) => (
+          <Link to="/">
+            {logoDom}
+            {titleDom}
+          </Link>
+        )}
+        onCollapse={handleMenuCollapse}
+        menuItemRender={(menuItemProps, defaultDom) => {
+          if (menuItemProps.isUrl || menuItemProps.children || !menuItemProps.path) {
+            return defaultDom;
+          }
+          return <Link to={menuItemProps.path}>{defaultDom}</Link>;
+        }}
+        breadcrumbRender={(routers = []) => [
+          {
+            path: '/',
+            breadcrumbName: '首页',
+          },
+          ...routers,
+        ]}
+        itemRender={(route, params, routes, paths) => {
+          const first = routes.indexOf(route) === 0;
+          return first ? (
+            <Link to={paths.join('/')}>{route.breadcrumbName}</Link>
+          ) : (
+            <span>{route.breadcrumbName}</span>
+          );
+        }}
+        footerRender={footerRender}
+        menuDataRender={() => menuDataRender(currentMenus)}
+        rightContentRender={() => <RightContent />}
+        {...props}
+        {...settings}
+      >
+        <ScreenLocker show={props?.user?.isLockedScreen} />
+        {children}
+      </ProLayout>
+    </ConfigProvider>
   );
 };
 export default connect(({ global, settings, login }: ConnectState) => ({

@@ -12,10 +12,15 @@ export interface EditableProTableProps<T, P> extends Omit<ProTableProps<T, P>, '
 
 interface EditableProTableState<T> {}
 
-export interface EditableProTableColumn<T> extends ProColumns<T> {
+// export interface EditableProTableColumn<T> extends ProColumns<T> {
+//   editable?: boolean;
+//   editType?: 'text' | 'mail' | 'number' | 'textarea' | 'date' | 'datetime' | 'password';
+// }
+
+export type EditableProTableColumn<T> = ProColumns<T> & {
   editable?: boolean;
   editType?: 'text' | 'mail' | 'number' | 'textarea' | 'date' | 'datetime' | 'password';
-}
+};
 
 export default class EditableProTable<
   T,
