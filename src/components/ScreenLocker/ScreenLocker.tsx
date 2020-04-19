@@ -8,6 +8,7 @@ import { execute } from 'hefang-js';
 import { accountLockScreen } from '@/services/login';
 import { RestApiResult } from '@/utils/request';
 import { SCREEN_LOCKER_PWD_MIN_LEN } from '@/utils/cosnts';
+import lockerBg from '@/assets/locker-background.png';
 
 export interface ScreenLockerProps extends ConnectProps {
   show?: boolean;
@@ -41,59 +42,6 @@ class ScreenLocker extends React.Component<ScreenLockerProps, ScreenLockerState>
     this.props.show && this.startInterval();
   };
 
-  private startInterval = () => {
-    this.timer = window.setTimeout(() => {
-      execute(this.props.dispatch, { type: 'login/heartbeat' });
-      this.startInterval();
-    }, 10 * 1000);
-  };
-
-  private doUnlock = () => {
-    this.form.current
-      ?.validateFields()
-      .then(({ password }) => {
-        this.setState({ unlocking: true });
-        accountLockScreen(false, password)
-          .then(res => {
-            execute(this.props.dispatch, {
-              type: 'login/saveCurrentUser',
-              payload: res.result,
-            });
-          })
-          .catch((errorResult: RestApiResult<string>) => {
-            this.setState({ error: errorResult.result });
-            if (errorResult.status === 401) {
-              setTimeout(() => {
-                execute(this.props.dispatch, {
-                  type: 'login/saveCurrentUser',
-                  payload: null,
-                });
-              }, 1500);
-            }
-          });
-      })
-      .catch(
-        ({
-          errorFields: [
-            {
-              errors: [errorMessage],
-            },
-          ],
-        }) => {
-          this.setState({ error: errorMessage });
-        },
-      )
-      .finally(() => this.setState({ unlocking: false }));
-  };
-
-  componentDidMount(): void {
-    window.addEventListener('mousemove', this.onMouseMove);
-  }
-
-  componentWillUnmount(): void {
-    window.removeEventListener('mousemove', this.onMouseMove);
-  }
-
   render() {
     const { show, dispatch } = this.props;
     const { unlocking, error } = this.state;
@@ -111,7 +59,7 @@ class ScreenLocker extends React.Component<ScreenLockerProps, ScreenLockerState>
         maskClosable={false}
         closable={false}
         keyboard={false}
-        maskStyle={{ backgroundColor: 'red' }}
+        maskStyle={{ background: `url(${lockerBg})` }}
         footer={
           <div className="align-center">
             <Spin spinning={unlocking}>
@@ -151,6 +99,59 @@ class ScreenLocker extends React.Component<ScreenLockerProps, ScreenLockerState>
       </Modal>
     );
   }
+
+  private startInterval = () => {
+    this.timer = window.setTimeout(() => {
+      execute(this.props.dispatch, { type: 'login/heartbeat' });
+      this.startInterval();
+    }, 5 * 60 * 1000);
+  };
+
+  componentDidMount(): void {
+    window.addEventListener('mousemove', this.onMouseMove);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('mousemove', this.onMouseMove);
+  }
+
+  private doUnlock = () => {
+    this.form.current
+      ?.validateFields()
+      .then(({ password }) => {
+        this.setState({ unlocking: true });
+        accountLockScreen(false, password)
+          .then(res => {
+            execute(this.props.dispatch, {
+              type: 'login/saveCurrentUser',
+              payload: res.result,
+            });
+          })
+          .catch((errorResult: RestApiResult<string>) => {
+            this.setState({ error: errorResult.result });
+            if (errorResult.status === 401) {
+              setTimeout(() => {
+                execute(this.props.dispatch, {
+                  type: 'login/saveCurrentUser',
+                  payload: null,
+                });
+              }, 1500);
+            }
+          });
+      })
+      .catch(
+        ({
+          errorFields: [
+            {
+              errors: [errorMessage],
+            },
+          ],
+        }) => {
+          this.setState({ error: errorMessage });
+        },
+      )
+      .finally(() => this.setState({ unlocking: false }));
+  };
 }
 
 export default connect(() => ({}))(ScreenLocker);

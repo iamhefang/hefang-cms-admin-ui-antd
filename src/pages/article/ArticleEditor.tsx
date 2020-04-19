@@ -14,7 +14,11 @@ import CKEditor from '@/components/CKEditor/CKEditor';
 import { PlusOutlined } from '@ant-design/icons/lib';
 import CategoryEditorForm from '@/pages/article/components/CategoryEditorForm';
 
-export type ArticleEditorProps = ConnectProps<any> & ArticleState;
+export interface ArticleEditorRouterParams {
+  id?: string;
+}
+
+export type ArticleEditorProps = ConnectProps<ArticleEditorRouterParams> & ArticleState;
 
 export interface ArticleEditorState {
   article: Article | null;
@@ -26,7 +30,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   private infoCardId = guid();
 
-  private id = this.props?.match?.params?.id || guid();
+  private id = this.props?.computedMatch?.params?.id || guid();
 
   private article: Article = {};
 
@@ -40,7 +44,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   componentDidMount(): void {
     const { dispatch } = this.props;
-    const { id } = this.props?.match?.params || {};
+    const { id } = this.props?.computedMatch?.params || {};
     execute(dispatch, { type: 'article/fetchCategoriesAndTags' });
     id &&
       queryArticle(id).then(res => {
@@ -59,7 +63,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
     this.setState({ submitting: true });
     setArticle(
       { ...this.state.article, ...values },
-      this.props?.match?.params?.id ? MethodEnum.PUT : MethodEnum.POST,
+      this.props?.computedMatch?.params?.id ? MethodEnum.PUT : MethodEnum.POST,
     )
       .then(() => {
         Modal.success({
@@ -215,7 +219,7 @@ class ArticleEditor extends React.Component<ArticleEditorProps, ArticleEditorSta
 
   render() {
     const { article } = this.state;
-    const { id } = this.props?.match?.params || {};
+    const { id } = this.props?.computedMatch?.params || {};
     return (
       <PageHeaderWrapper title={id ? '编辑文章' : '新建文章'} key={this.id}>
         {article === null && id ? this.renderSkeleton() : this.renderForm()}

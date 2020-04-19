@@ -1,30 +1,44 @@
 import { connect } from 'dva';
 import React, { useRef, useState } from 'react';
 import ProTable, { ActionType, ProColumns, RequestData } from '@ant-design/pro-table';
-import { deleteTheme, queryAllTheme, Theme } from '@/services/theme';
-import { Button, Divider, Modal, Popconfirm, Skeleton, Spin, Tag, Tooltip } from 'antd';
+import { deleteTheme, Theme } from '@/services/theme';
+import {
+  Button,
+  Divider,
+  Dropdown,
+  Menu,
+  message,
+  Modal,
+  Popconfirm,
+  Spin,
+  Switch,
+  Tag,
+  Tooltip,
+  Upload,
+} from 'antd';
 import {
   BugOutlined,
   DeleteOutlined,
+  DownOutlined,
+  InboxOutlined,
   SettingFilled,
-  SettingOutlined,
-  SkinFilled,
-  SkinOutlined,
 } from '@ant-design/icons/lib';
+import _ from 'lodash';
 import { chainingCheck } from 'hefang-js';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { querySettingsByCategory, saveSettings, Setting } from '@/services/setting';
-import SettingForm from '@/components/SettingForm/SettingForm';
-import { useForm } from 'antd/lib/form/util';
+import { Plugin, queryAllPlugins } from '@/services/plugin';
+import { UploadChangeParam } from 'antd/lib/upload';
+
+// import "antd/lib/upload/style/index.less";
 
 function doRequest(): Promise<RequestData<Theme>> {
   return new Promise((resolve, reject) => {
-    queryAllTheme()
+    queryAllPlugins()
       .then(res => {
         resolve({
           success: true,
-          total: res.result.length,
-          data: res.result,
+          total: res.result.total,
+          data: res.result.data,
         });
       })
       .catch(reject);
@@ -39,26 +53,12 @@ const versionMap = {
   '*': '所有版本',
 };
 
-function ThemeList() {
+function PluginList() {
   const actionRef = useRef<ActionType>();
-  const [settings, setSettings] = useState<{ [key: string]: Setting[] }>({});
-  const [current, setCurrent] = useState<Theme | null>(null);
-  const [showModal, toggleModal] = useState<boolean>(false);
-  const [form] = useForm();
-  const [saving, setSaving] = useState<boolean>(false);
-
-  function showSetting(record: Theme) {
-    toggleModal(true);
-    setCurrent(record);
-    if (!(record.id in settings)) {
-      querySettingsByCategory(`theme_${record.id}`).then(res => {
-        setSettings({ ...settings, [record.id || '']: res.result.data });
-        return Promise.resolve(res.result.data);
-      });
-    }
-  }
-
-  const columns: ProColumns<Theme>[] = [
+  const [showUploadModal, setModalVisible] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [plugin, setPlugin] = useState<Plugin | null>(null);
+  const columns: ProColumns<Plugin>[] = [
     {
       title: '编号',
       key: 'number',
@@ -76,7 +76,7 @@ function ThemeList() {
             style={{ paddingLeft: 0 }}
             target="_blank"
             rel="noreferrer noopener"
-            title="点击访问主题主页"
+            title="点击访问插件主页"
           >
             {record.name}
           </a>
@@ -109,7 +109,7 @@ function ThemeList() {
       title: '反馈',
       dataIndex: 'issues',
       render: (text, record) => (
-        <Tooltip title={record.issues ? '点击进入问题反馈页面' : '该主题未提供反馈页面'}>
+        <Tooltip title={record.issues ? '点击进入问题反馈页面' : '该插件未提供反馈页面'}>
           <Button
             type="link"
             href={record.issues}
@@ -150,55 +150,52 @@ function ThemeList() {
       ),
     },
     {
+      title: '启用',
+      key: 'theme-list-enable',
+      dataIndex: 'enable',
+      align: 'center',
+      width: 100,
+      render: (enable, record) => (
+        <Popconfirm
+          title={`确定要${enable ? '关闭' : '打开'}插件《${record.name}》吗？`}
+          okText={enable ? '关闭插件' : '打开插件'}
+        >
+          <Switch checkedChildren="开" unCheckedChildren="关" checked={enable as boolean} />
+        </Popconfirm>
+      ),
+      filters: [
+        { text: '已开启', value: true },
+        { text: '已关闭', value: false },
+      ],
+    },
+    {
       title: '操作',
       key: 'theme-list-action',
       align: 'center',
       width: 140,
       render: (text, record) => [
-        record.isCurrent ? (
-          <Tooltip title="该主题是当前主题">
+        _.isEmpty(record.settings) ? (
+          <Tooltip title="该插件未提供配置项" placement="topRight">
             <Button
-              key={makeKey(record, 'is-current')}
+              key={makeKey(record, 'no-setting-button')}
+              disabled
               type="link"
               size="small"
-              icon={<SkinFilled />}
+              icon={<SettingFilled />}
             />
           </Tooltip>
         ) : (
-          <Tooltip title="使用该主题">
-            <Popconfirm
-              title={`要把《${record.name}》设置为当前主题吗？`}
-              placement="leftTop"
-              onConfirm={() => {
-                saveSettings({
-                  'site|theme': record.id,
-                }).then(() => actionRef.current?.reload());
-              }}
-            >
-              <Button
-                key={makeKey(record, 'not-current')}
-                type="link"
-                size="small"
-                icon={<SkinOutlined />}
-              />
-            </Popconfirm>
-          </Tooltip>
-        ),
-        <Divider key={makeKey(record, 'divider-1')} type="vertical" />,
-        <Tooltip title={record.settings ? '设置' : '该主题未提供配置项'} placement="topRight">
           <Button
-            key={makeKey(record, 'no-setting-button')}
-            disabled={!record.settings}
+            key={makeKey(record, 'setting-button')}
             type="link"
             size="small"
-            onClick={() => showSetting(record)}
             icon={<SettingFilled />}
           />
-        </Tooltip>,
+        ),
         <Divider key={makeKey(record, 'divider-2')} type="vertical" />,
-        <Tooltip title="删除该主题" placement="topRight">
+        <Tooltip title="卸载该插件" placement="topRight">
           <Popconfirm
-            title="要删除该主题吗？"
+            title="要卸载该插件吗？"
             placement="leftTop"
             onConfirm={() => {
               deleteTheme(record).then(() => actionRef.current?.reload());
@@ -219,70 +216,80 @@ function ThemeList() {
 
   return (
     <PageHeaderWrapper>
-      <ProTable<Theme>
+      <ProTable<Plugin>
         columns={columns}
         request={doRequest}
         pagination={false}
         actionRef={actionRef}
         search={false}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            href={`https://cms.hefang.org/theme-store?from=${window.location.href.replace(
-              window.location.hash,
-              '',
-            )}`}
-            target="_blank"
-            key="link-2-theme-store"
+          <Dropdown
+            key="install-new-plugin"
+            overlay={
+              <Menu>
+                <Menu.Item onClick={() => setModalVisible(true)}>安装插件包</Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  onClick={() => window.open('https://cms.hefang.org/plugin-store', '_blank')}
+                >
+                  插件商店
+                </Menu.Item>
+              </Menu>
+            }
           >
-            主题商店
-          </Button>,
+            <Button target="_blank">
+              安装插件 <DownOutlined />
+            </Button>
+          </Dropdown>,
         ]}
       />
       <Modal
-        title={
-          <>
-            <SettingOutlined /> {current?.name}
-          </>
-        }
-        visible={showModal}
+        visible={showUploadModal}
+        title="上传插件包"
         centered
-        okText="保存"
-        style={{ minWidth: window.innerWidth * 0.6, maxWidth: 1024 }}
-        confirmLoading={saving}
-        onCancel={() => {
-          toggleModal(false);
-          setTimeout(() => {
-            setCurrent(null);
-          }, 500);
-        }}
-        onOk={() => {
-          form.validateFields().then(values => {
-            setSaving(true);
-            saveSettings(values).finally(() => setSaving(false));
-          });
-        }}
+        maskClosable={false}
+        okButtonProps={{ loading: uploading }}
+        onCancel={() => uploading || setModalVisible(false)}
       >
-        <Skeleton loading={current ? !(current?.id in settings) : true} active>
-          <Spin spinning={saving}>
-            <SettingForm
-              form={form}
-              paneStyle={{ maxHeight: window.innerHeight * 0.6, overflow: 'auto' }}
-              showRightInfo={false}
-              settings={[
-                {
-                  id: current?.id || '',
-                  name: current?.name || '',
-                  settings: settings[current?.id || ''],
-                  description: current?.description || '',
-                },
-              ]}
-            />
+        {plugin ? (
+          <div>
+            <div>插件ID：{plugin.id}</div>
+            <div>
+              插件名称：{plugin.name}-v{plugin.version}
+            </div>
+            <div>描述：{plugin.description}</div>
+          </div>
+        ) : (
+          <Spin spinning={uploading} tip="正在上传...">
+            <Upload.Dragger
+              action="/apis/plugin/plugin/upload/archive.php"
+              beforeUpload={() => {
+                setUploading(true);
+                return true;
+              }}
+              onChange={({ file }: UploadChangeParam) => {
+                if (file.status === 'done' && file.response) {
+                  setPlugin(file.response.result);
+                  setUploading(false);
+                } else if (file.status === 'error') {
+                  setUploading(false);
+                  message.error(file.response.result, 10);
+                }
+              }}
+              showUploadList={false}
+              accept=".zip,.hpa,.phar"
+            >
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">点击此处或拖动插件包文件到此处上传插件</p>
+              <p className="ant-upload-hint">插件包支持.phar,.zip和.hpa后缀的文件</p>
+            </Upload.Dragger>
           </Spin>
-        </Skeleton>
+        )}
       </Modal>
     </PageHeaderWrapper>
   );
 }
 
-export default connect()(ThemeList);
+export default connect()(PluginList);

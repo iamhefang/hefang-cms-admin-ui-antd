@@ -14,17 +14,17 @@ export default {
     },
   },
   test: {
-    '/apis/': {
-      target: 'https://preview.pro.ant.design',
-      changeOrigin: true,
-      pathRewrite: { '^': '' },
-    },
+    // '/apis/': {
+    //   target: 'https://preview.pro.ant.design',
+    //   changeOrigin: true,
+    //   pathRewrite: { '^': '' },
+    // },
   },
   pre: {
-    '/apis/': {
-      target: 'your pre url',
-      changeOrigin: true,
-      pathRewrite: { '^': '' },
-    },
+    // '/apis/': {
+    //   target: 'your pre url',
+    //   changeOrigin: true,
+    //   pathRewrite: { '^': '' },
+    // },
   },
 };

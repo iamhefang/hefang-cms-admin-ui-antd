@@ -38,6 +38,10 @@ export async function queryAllSettingCategories(): RestPagerPromise<SettingCateg
   return request('/apis/admin/settingcategory/list.json');
 }
 
+export async function querySettingsByCategory(cate: string): RestPagerPromise<Setting> {
+  return request(`/apis/admin/setting/list/${cate}.json`);
+}
+
 export async function saveSettings(data: { [key: string]: any }): RestApiPromise {
   return request('/apis/admin/setting/set.json', {
     method: MethodEnum.POST,

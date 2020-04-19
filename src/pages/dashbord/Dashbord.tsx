@@ -8,6 +8,7 @@ import { DashbordState } from '@/models/dashbord';
 import { execute } from 'hefang-js';
 import { ColumnsType } from 'antd/lib/table';
 import { Comment } from '@/services/comment';
+import Logo from '@/components/Logo/Logo';
 
 const functionGuide = {
   新建文章: '/content/articles/editor.html',
@@ -92,6 +93,9 @@ function Dashbord({ articleDrafts, dispatch, unreadComments }: DashbordState & C
             extra={<Link to="/content/comments/list.html">去评论列表页</Link>}
           >
             <Table columns={commentColumns} emptyText="无未读评论" pagination={false} />
+          </Card>
+          <Card>
+            <Logo size={1} />
           </Card>
         </Col>
         <Col span={8}>

@@ -144,6 +144,11 @@ export default {
               component: './theme/ThemeList.tsx',
             },
             {
+              name: '插件管理',
+              path: '/setting/plugins.html',
+              component: './plugin/PluginList.tsx',
+            },
+            {
               name: '个人中心',
               path: '/user/profile.html',
               component: './user/profile/Profile',
