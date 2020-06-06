@@ -15,6 +15,7 @@ let once = false;
 
 const startServer = spawn(/^win/.test(process.platform) ? 'npm.cmd' : 'npm', ['start'], {
   env,
+
 });
 
 startServer.stderr.on('data', data => {
